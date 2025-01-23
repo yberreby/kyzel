@@ -1,13 +1,35 @@
 [project]
 name = "kyzel"
 version = "0.1.0"
-description = "Add your description here"
+description = "Local LLMs + IPython REPL"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "setuptools>=75.8.0",
+    # The core of it all, must be compatible with unsloth.
+    "torch>=2.5.0",
+    # Essentials for fine-tuning.
     "unsloth[cu124-ampere-torch250]",
+    # To work nicely with notebooks.
+    "jupytext>=1.16.6",
+    # Some packages assume setuptools is present.
+    "setuptools>=75.8.0",
+    # Rather standard and useful.
+    "matplotlib>=3.10.0",
+    # Because I like interactive plots.
+    "ipympl>=0.9.6",
+    "ipywidgets>=8.1.5",
+    # Nice progress bars.
+    "tqdm>=4.67.1",
+    # Because correctness is vital.
+    "pytest>=8.3.4",
+    # Easy interaction with external LLMs, including frontier LLMs when opting-in.
+    "litellm>=1.59.3",
+    # UX: Syntax highlighting of Python code
+    "pygments>=2.19.1",
+    # UX: Pretty-printing assistant messages.
+    "markdown2>=2.5.2",
 ]
 
 [tool.uv.sources]
+# We should probably pin to commit - this is fine for now.
 unsloth = { git = "https://github.com/unslothai/unsloth.git" }
