@@ -14,10 +14,24 @@
 # ---
 
 # %%
+# Autoreload local code.
 # %load_ext autoreload
 # %autoreload 2
 
 # %%
 import src
+
+# %%
+from unsloth import FastLanguageModel
+import torch
+
+max_seq_length = 2048
+model_name = "unsloth/Phi-4"
+
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name=model_name,
+    max_seq_length=max_seq_length,
+    load_in_4bit=True,
+)
 
 # %%
