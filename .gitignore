@@ -9,9 +9,14 @@ wheels/
 # Virtual environments
 .venv
 
-
 # Jupyter checkpoints
 .ipynb_checkpoints/
 
 # Notebooks are managed with jupytext
 *.ipynb
+
+# Linting
+.ruff_cache
+
+# Unsloth artifacts
+_unsloth*
