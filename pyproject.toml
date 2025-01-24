@@ -9,6 +9,8 @@ dependencies = [
     "torch>=2.5.0",
     # Essentials for fine-tuning.
     "unsloth[cu124-ampere-torch250]",
+    # Interactive development, visualizations...
+    "jupyterlab>=4.3.4",
     # To work nicely with notebooks.
     "jupytext>=1.16.6",
     # Some packages assume setuptools is present.
