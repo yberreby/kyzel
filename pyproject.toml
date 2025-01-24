@@ -30,6 +30,8 @@ dependencies = [
     "pygments>=2.19.1",
     # UX: Pretty-printing assistant messages.
     "markdown2>=2.5.2",
+    # Implicitly required by Jupyter, but essential.
+    "ipython>=8.31.0",
 ]
 
 [tool.uv.sources]

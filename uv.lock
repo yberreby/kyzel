@@ -1310,6 +1310,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "ipympl" },
+    { name = "ipython" },
     { name = "ipywidgets" },
     { name = "jupyterlab" },
     { name = "jupytext" },
@@ -1327,6 +1328,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "ipympl", specifier = ">=0.9.6" },
+    { name = "ipython", specifier = ">=8.31.0" },
     { name = "ipywidgets", specifier = ">=8.1.5" },
     { name = "jupyterlab", specifier = ">=4.3.4" },
     { name = "jupytext", specifier = ">=1.16.6" },

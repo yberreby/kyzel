@@ -1,10 +1,10 @@
 <root>
 <events>
-<msg role="user">
+<msg from="user">
 Get my org-roam database, embed each node title with a small SBERT, UMAP-reduce to 2 dim and plot to a file
 </msg>
 
-<msg role="assistant">
+<msg from="assistant">
 Ah, you want to visualize the semantic layout of your org-roam DB's titles!
 
 # High-level plan
