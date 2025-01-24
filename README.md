@@ -6,11 +6,6 @@ Bear with me, this one is more than a thin wrapper around Anthropic/OpenAI.
 
 We're going to *make running local models compelling enough that you'd actually want to do so* - and not just because you can't use cloud models for privacy reasons.
 
-## Prerequisites
-
-- Modern NVIDIA GPU, preferably 24 GB VRAM (RTX 4090), at least 8GB VRAM (RTX 4060).
-- Linux
-
 ## Concretely?
 
 For users:
@@ -28,6 +23,33 @@ For researchers / ML engineers:
   - [ ] **Low-data RL with DPO**
 - [X] **Powered by `Phi4`** on larger GPUs (24GB VRAM), **`Qwen 2.5 Coder 3B`** on smaller ones (8GB VRAM). Designed to be repurposed with minimal for other/new models.
 - [ ] **Didactical approach**: detailed writeups and emphasis on clean, minimal, robust code.
+
+## Repository structure
+
+- `src`: Python code
+- `data`: training/validation data
+- `run`: runtime files
+
+
+## Quickstart
+
+Prerequisites:
+- Modern NVIDIA GPU, preferably 24 GB VRAM (RTX 4090), at least 8GB VRAM (RTX 4060).
+- Linux (tested on Arch Linux)
+
+In a shell:
+```
+# Create venv, install dependencies. This will take a while.
+./setup.sh
+
+# Convert notebooks
+uv run jupytext --to ipynb train.py
+
+# Run Jupyter
+uv run jupyter-lab .
+```
+
+
 
 ## The story
 
