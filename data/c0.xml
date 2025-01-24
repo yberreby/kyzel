@@ -1,4 +1,4 @@
-<root>
+<session>
 <events>
 <msg from="user">
 Get my org-roam database, embed each node title with a small SBERT, UMAP-reduce to 2 dim and plot to a file
@@ -279,4 +279,4 @@ plt.savefig('org_roam_map.png', dpi=300, bbox_inches='tight')
 <result/>
 
 </events>
-</root>
+</session>

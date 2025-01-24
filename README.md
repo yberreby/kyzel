@@ -45,6 +45,9 @@ In a shell:
 # Convert notebooks
 uv run jupytext --to ipynb train.py
 
+# Run tests
+uv run pytest
+
 # Run Jupyter
 uv run jupyter-lab .
 ```
