@@ -8,3 +8,10 @@ wheels/
 
 # Virtual environments
 .venv
+
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Notebooks are managed with jupytext
+*.ipynb
