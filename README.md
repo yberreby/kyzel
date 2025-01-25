@@ -43,7 +43,7 @@ For researchers / ML engineers:
 If using [`llmexport`](https://github.com/yberreby/llmexport), and wanting to focus on core logic, you can exclude display logic, sample data, tests, etc. with the following command:
 
 ```
-llmexport --stdout * -i '*/ipy/*' -i 'data/*' -i '*test*' -i 'nb/*'
+llmexport --stdout * -i 'src/display/*' -i 'data/*' -i '*test*' -i 'nb/*'
 ```
 
 ## Quickstart
