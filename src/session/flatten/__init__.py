@@ -50,7 +50,7 @@ def as_thought_block(text: str) -> str:
 
 def as_action_block(action: str) -> str:
     # This is succinct so maybe could just have a prefix... but let's try to be consistent.
-    return f"<action>{action}</output>"
+    return f"<action>{action}</action>"
 
 
 def as_output_block(result: str) -> str:
