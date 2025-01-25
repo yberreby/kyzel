@@ -18,6 +18,8 @@ For users:
 - [ ] **The more you use it, the better it gets**: collect private interaction data as you go and fine-tune your model locally with it.
 
 For researchers / ML engineers:
+- [X] **Distribution drift paranoia**: we do our best to minimize distribution drift between pretrained public models and our approach, in order to fine-tune with less data and less computing power, and get better results in inference.
+- [X] **Constrained generation**: we use a custom `LogitsProcessor` to enforce correct formatting, minimizing "cosmetic" failures where the model has the right spirit but the wrong letter.
 - [X] **On-device fine-tuning with [Unsloth](https://unsloth.ai/)**: none of this would be possible without their excellent work.
   - [X] **SFT with QLoRA**
   - [ ] **Low-data RL with DPO**
