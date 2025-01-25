@@ -58,7 +58,7 @@ In a shell:
 ./setup.sh
 
 # Convert notebooks
-uv run jupytext --to ipynb train.py
+uv run jupytext --to ipynb nb/*
 
 # Run tests
 uv run pytest
