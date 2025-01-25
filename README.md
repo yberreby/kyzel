@@ -1,4 +1,4 @@
-# kyzel - local coding AI in your image
+# ⚒️ `kyzel` - local coding AI in your image
 
 _Oh no, another fancy yet useless AI project..._
 
