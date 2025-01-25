@@ -58,13 +58,21 @@ def generate(prompt):
 
 # %%
 # Test
-response = generate("Output some Python code defining a triple-backtick template for string formatting, using a multiline triple-double-quote string. INDENT with leading whitespace the contents of that string containing the triple backquotes (markdown code fence).")
+response = generate("Output some Python code with triple backticks INSIDE of it (printing them for example). before that, just write <action>ACTING</action>")
 print("\nFINAL OUTPUT:")
 print(response)
 
 # %%
-# Test
-response = generate("Output some Python code with triple backticks INSIDE of it (printing them for example). before that, just write <action>ACTING</action>")
+from src.postproc import parse_constrained_message
+parse_constrained_message(response)
+
+# %%
+for e in parse_constrained_message(response):
+    display(e)
+
+# %%
+# This one is particularly evil.
+response = generate("Output some Python code defining a triple-backtick template for string formatting, using a multiline triple-double-quote string. INDENT with leading whitespace the contents of that string containing the triple backquotes (markdown code fence).")
 print("\nFINAL OUTPUT:")
 print(response)
 

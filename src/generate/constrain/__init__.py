@@ -6,7 +6,6 @@ from typing import List, Dict, Tuple, Optional
 
 from .logit_utils import force_token
 
-logging.basicConfig(level=logging.DEBUG, format="%(levelname)s:%(message)s")
 logger = logging.getLogger(__name__)
 
 # Verbatim start of a code block. This is a constant.
@@ -15,7 +14,7 @@ code_start = "```python\n"
 
 class State(Enum):
     START = auto()
-    REFLECT_CONTENT = auto()
+    THOUGHT_CONTENT = auto()
     ACTION_OPEN = auto()
     ACTION_CONTENT = auto()
     CODE_FENCE_START = auto()
@@ -58,9 +57,9 @@ def get_next_state(state: State, text: str) -> Tuple[State, Optional[str]]:
     """
     match state:
         case State.START:
-            return State.REFLECT_CONTENT, "<reflect>"
+            return State.THOUGHT_CONTENT, "<thought>"
 
-        case State.REFLECT_CONTENT if "</reflect>" in text:
+        case State.THOUGHT_CONTENT if "</thought>" in text:
             return State.ACTION_OPEN, "<action>"
 
         case State.ACTION_OPEN:
