@@ -21,22 +21,28 @@
 # %%
 import sys
 
-sys.path.append("..")
+# %%
+# %pwd
 
 # %%
-import src
+sys.path.append('..')
 
 # %%
-from unsloth import FastLanguageModel
-import torch
-
-max_seq_length = 2048
-model_name = "unsloth/Phi-4"
-
-model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name=model_name,
-    max_seq_length=max_seq_length,
-    load_in_4bit=True,
-)
+from src.session import from_file, flatten_to_chatml
+from src.chatml import print_conversation
 
 # %%
+path = '../data/c0.xml'
+session = from_file(path)
+
+# %%
+session
+
+# %%
+conversation = flatten_to_chatml(session)
+
+# %%
+conversation
+
+# %%
+print_conversation(conversation)

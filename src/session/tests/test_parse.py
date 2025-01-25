@@ -7,6 +7,7 @@ from ..event.types import (
     ExecutionResult,
 )
 
+
 def test_parse():
     xml = """<session>
         <events>

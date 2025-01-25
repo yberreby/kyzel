@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 from .event import event_from_xml
 from .types import Session
 
+
 def from_str(xml_str: str) -> Session:
     session_el = ET.fromstring(xml_str)
     xml_events = session_el.find(".//events")
@@ -12,6 +13,7 @@ def from_str(xml_str: str) -> Session:
 
     events = [event_from_xml(e) for e in xml_events]
     return Session(events=events)
+
 
 def from_file(path) -> Session:
     with open(path, "r") as f:

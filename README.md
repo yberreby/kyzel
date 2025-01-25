@@ -24,6 +24,14 @@ For researchers / ML engineers:
 - [X] **Powered by `Phi4`** on larger GPUs (24GB VRAM), **`Qwen 2.5 Coder 3B`** on smaller ones (8GB VRAM). Designed to be repurposed with minimal for other/new models.
 - [ ] **Didactical approach**: detailed writeups and emphasis on clean, minimal, robust code.
 
+## Lingo
+- A *conversation* is a sequence of (ChatML) messages. It's a flat stream, or list.
+- An *event* is something that happened
+  - Examples: the user sent a message to the model; the model sent a message to the user; the model thought to itself; the model requested execution of some code; the execution yielded some result...
+  - One could consider less obvious events: the user *preferred* such-and-such generation over this other one; the user reworded the model's output
+  - Importantly, the user can choose to roll back to an earlier point in the conversation (not necessarily perfectly, but at least roll back the chat history), and they do so through relevant events.
+- A *session* contains many events. It's also a list, but it implicitly can branch out into many conversation paths, potential or actual.
+
 ## Repository structure
 
 - `src`: Python code

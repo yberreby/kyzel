@@ -37,3 +37,6 @@ dependencies = [
 [tool.uv.sources]
 # We should probably pin to commit - this is fine for now.
 unsloth = { git = "https://github.com/unslothai/unsloth.git" }
+
+[tool.ruff]
+exclude = ["nb"]
