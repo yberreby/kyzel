@@ -1,7 +1,10 @@
-import xml.etree.ElementTree as ET
+"""
+Parsing/loading an entire session.
+"""
 
+import xml.etree.ElementTree as ET
+from src.types import Session
 from .event import event_from_xml
-from .types import Session
 
 
 def from_str(xml_str: str) -> Session:

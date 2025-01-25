@@ -262,7 +262,7 @@ plt.ylabel('UMAP 2')
 <result/>
 <thought>Let's improve the plot before saving. Points without labels are not very meaningful, but we should be careful about overcrowding, since we have a lot of points. Let's only annotate a random subset of the points.</thought>
 
-<thought>Using `plt.annotate` on a few points.</thought>
+<action>Using `plt.annotate` on a few points.</action>
 <code>
 n_annotations = 20
 indices = np.random.choice(len(titles_truncated), size=n_annotations, replace=False)

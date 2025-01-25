@@ -1,7 +1,6 @@
-from .types import Conversation, Msg
+from src.types import Conversation, ChatMsg
 
-
-def print_msg(msg: Msg):
+def print_msg(msg: ChatMsg):
     print(f"\n{msg['role'].upper()}:")
     print("-" * 80)
     print(msg["content"])

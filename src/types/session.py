@@ -1,7 +1,11 @@
+"""
+Session = (roughly) an ordered collection of events + metadata.
+"""
+
 from dataclasses import dataclass
 from typing import List
 
-from .event.types import EventBody
+from .events import EventBody
 
 
 @dataclass

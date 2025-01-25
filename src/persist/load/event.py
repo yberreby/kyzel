@@ -1,9 +1,11 @@
 """
 Clean and carefully written XML -> Python ingestion routines.
+
+For individual events.
 """
 
 from xml.etree.ElementTree import Element as XmlElement
-from .types import (
+from src.types import (
     HumanMsg,
     AssistantMsg,
     AssistantThought,
@@ -12,17 +14,6 @@ from .types import (
     ExecutionResult,
     EventBody,
 )
-
-
-__all__ = [
-    "HumanMsg",
-    "AssistantThought",
-    "CodeFragment",
-    "AssistantMsg",
-    "ExecutionResult",
-    "EventBody",
-]
-
 
 def normalized_text(el: XmlElement) -> str:
     # Removing leading and trailing newlines.

@@ -74,3 +74,13 @@ EventBody = (
     | AssistantMsg
     | ExecutionResult
 )
+
+# Somewhat duplicated, sadly.
+individual_event_types = [
+    HumanMsg,
+    AssistantThought,
+    AssistantAction,
+    CodeFragment,
+    AssistantMsg,
+    ExecutionResult,
+]

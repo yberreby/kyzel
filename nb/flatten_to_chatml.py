@@ -28,18 +28,16 @@ import sys
 sys.path.append('..')
 
 # %%
-from src.session import from_file, flatten_to_chatml
-from src.chatml import print_conversation
+from src.persist.load import session_from_file
+from src.preproc import session_to_chatml
 
 # %%
 path = '../data/c0.xml'
-session = from_file(path)
+session = session_from_file(path)
+conversation = session_to_chatml(session)
 
 # %%
 session
-
-# %%
-conversation = flatten_to_chatml(session)
 
 # %%
 conversation

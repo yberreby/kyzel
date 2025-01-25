@@ -61,7 +61,7 @@ In a shell:
 uv run jupytext --to ipynb nb/*
 
 # Run tests
-uv run pytest
+uv run -m pytest
 
 # Run Jupyter
 uv run jupyter-lab .

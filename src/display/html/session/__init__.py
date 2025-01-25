@@ -6,8 +6,8 @@ from warnings import warn
 
 from IPython import get_ipython
 
-from ..types import Session
-from ..event.types import (
+from src.types import (
+    Session,
     AssistantAction,
     HumanMsg,
     AssistantThought,
@@ -15,8 +15,8 @@ from ..event.types import (
     AssistantMsg,
     ExecutionResult,
     EventBody,
+    individual_event_types
 )
-from ..event import individual_event_types
 
 from .css import get_base_css
 from .md import format_markdown

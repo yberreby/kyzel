@@ -1,3 +1,7 @@
+"""
+ChatML-specific types.
+"""
+
 from typing import Literal, TypedDict
 
 # Restrictive type. Most of the time, no system messages in sight.

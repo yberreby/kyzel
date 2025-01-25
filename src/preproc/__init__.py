@@ -4,9 +4,9 @@ applying any appropriate rewriting transformations.
 """
 
 from typing import Optional
-from src.chatml import Conversation, Msg as ChatMLMsg, NormalRole
-from src.session import Session
-from src.session.event.types import (
+from src.types.chatml import Conversation, Msg as ChatMLMsg, NormalRole
+from src.types import (
+    Session,
     AssistantAction,
     EventBody,
     HumanMsg,
@@ -91,7 +91,7 @@ def ensure_consistency(conv: Conversation):
             )
 
 
-def flatten_to_chatml(session: Session) -> Conversation:
+def session_to_chatml(session: Session) -> Conversation:
     """
     For now, no deletion or anything fancy.
     Just coalescing of relevant contiguous messages.
