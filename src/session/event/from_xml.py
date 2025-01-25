@@ -7,6 +7,7 @@ from .types import (
     HumanMsg,
     AssistantMsg,
     AssistantThought,
+    AssistantAction,
     CodeFragment,
     ExecutionResult,
     EventBody,
@@ -72,6 +73,12 @@ def exec_result_from_xml(el: XmlElement) -> ExecutionResult:
     return ExecutionResult(output)
 
 
+def action_from_xml(el: XmlElement) -> AssistantAction:
+    assert el.tag == "action"
+    # Definitely normalize here - it's basically a title.
+    return AssistantAction(normalized_text(el))
+
+
 def event_from_xml(el: XmlElement) -> EventBody:
     """
     Convert the parsed XML representing a single event, such as '<msg>...</msg>', into the corresponding Python type.
@@ -86,5 +93,7 @@ def event_from_xml(el: XmlElement) -> EventBody:
             return code_from_xml(el)
         case "result":
             return exec_result_from_xml(el)
+        case "action":
+            return action_from_xml(el)
         case _:
             raise ValueError(f"unknown event XML tag: '{el.tag}")

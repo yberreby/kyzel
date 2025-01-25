@@ -7,6 +7,7 @@ from typing import Optional
 from src.chatml import Conversation, Msg as ChatMLMsg, NormalRole
 from src.session import Session
 from src.session.event.types import (
+    AssistantAction,
     EventBody,
     HumanMsg,
     AssistantMsg,
@@ -21,7 +22,7 @@ def event_source_role(event: EventBody) -> NormalRole:
         # These are rather clear-cut.
         case HumanMsg():
             return "user"
-        case AssistantMsg() | AssistantThought():
+        case AssistantMsg() | AssistantThought() | AssistantAction():
             return "assistant"
         # Code fragments are always emitted by the assistant (at least at the moment).
         case CodeFragment():
@@ -47,6 +48,11 @@ def as_thought_block(text: str) -> str:
     return f"<thought>{text}</thought>"
 
 
+def as_action_block(action: str) -> str:
+    # This is succinct so maybe could just have a prefix... but let's try to be consistent.
+    return f"<action>{action}</output>"
+
+
 def as_output_block(result: str) -> str:
     # Just a simple XML block for now.
     # Could just be <output/> when empty - but let's not confuse the models.
@@ -64,6 +70,8 @@ def event_to_plaintext(event: EventBody) -> str:
             return text
         case AssistantThought(text):
             return as_thought_block(text)
+        case AssistantAction(text):
+            return as_action_block(text)
         case CodeFragment(code):
             return as_code_fences(code)
         case ExecutionResult(result):

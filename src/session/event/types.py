@@ -28,6 +28,15 @@ class AssistantThought:
 
 
 @dataclass
+class AssistantAction:
+    """
+    A brief statement explaining what the next action (code fragment) will do.
+    """
+
+    text: str
+
+
+@dataclass
 class CodeFragment:
     """
     A piece of Python code that the assistant requests to run in the REPL.
@@ -57,4 +66,11 @@ class ExecutionResult:
     output: str
 
 
-EventBody = HumanMsg | AssistantThought | CodeFragment | AssistantMsg | ExecutionResult
+EventBody = (
+    HumanMsg
+    | AssistantThought
+    | AssistantAction
+    | CodeFragment
+    | AssistantMsg
+    | ExecutionResult
+)

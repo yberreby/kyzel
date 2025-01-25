@@ -55,6 +55,11 @@ def get_base_css() -> str:
         color: var(--text-muted);
     }
 
+    .action {
+        font-weight: 600;
+        font-size: 1.2em;
+    }
+
     .code {
         background: var(--bg-code);
         font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;

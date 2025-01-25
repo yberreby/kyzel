@@ -51,7 +51,7 @@ Let's start by:
 On to the first small task...
 </msg>
 
-<thought>Checking system memory.</thought>
+<action>Checking total and available system memory</action>
 <code>
 import psutil
 mem = psutil.virtual_memory()
@@ -65,9 +65,9 @@ Total memory: 32.0GB
 Available memory: 24.5GB
 Memory usage: 23.4%
 </result>
-<thought>Memory seems sufficient.</thought>
+<thought>Memory seems sufficient. We can proceed with imports, from most basic to most specialized.</thought>
 
-<thought>Importing essential packages, from most basic to most specialized.</thought>
+<action>Importing essential packages</action>
 <code>
 import numpy as np
 import matplotlib.pyplot as plt
@@ -81,7 +81,7 @@ import sentence_transformers
 <thought>All available, great.</thought>
 
 
-<thought>Trying to get the org-roam DB location using emacsclient.</thought>
+<action>Querying the org-roam DB location using emacsclient.</action>
 <code>
 import subprocess
 
@@ -104,9 +104,9 @@ emacsclient: No socket or alternate editor.  Please use:
 	--server-file      (or environment variable EMACS_SERVER_FILE)
 	--alternate-editor (or environment variable ALTERNATE_EDITOR)
 </result>
-<thought>Looks like there's no server running.</thought>
+<thought>Looks like there's no server running. Change of plans...</thought>
 
-<thought>Change of plans; looking for org-roam.db in standard locations.</thought>
+<action>Looking for org-roam.db in standard locations</action>
 <code>
 from pathlib import Path
 import os
@@ -130,7 +130,7 @@ Found DB: /home/yohai/.doom.d/org-roam.db
 </result>
 <thought>Finally, found it.</thought>
 
-<thought>Ensuring we can load it and looking at the available tables.</thought>
+<action>Ensuring we can load the DB, looking at available tables</action>
 <code>
 conn = sqlite3.connect(db_path)
 cur = conn.cursor()
@@ -142,10 +142,10 @@ print("Tables in database:", cur.fetchall())
 <result>
 Tables in database: [('files',), ('nodes',), ('aliases',), ('citations',), ('refs',), ('tags',), ('links',)]
 </result>
-<thought>Looks like the file is a valid SQLite DB.</thought>
+<thought>Looks like the file is a valid SQLite DB. We're interested in the `nodes` table.</thought>
 
 
-<thought>We're interested in the `nodes` table. Inspecting its schema.</thought>
+<action>Inspecting the schema of the `nodes` table</action>
 <code>
 table_name = 'nodes'
 cur.execute(f"PRAGMA table_info({table_name})")
@@ -169,7 +169,7 @@ for column in schema_info:
 </result>
 <thought>Seems reasonable. We mostly care about the `title` column, here.</thought>
 
-<thought>Getting all node titles from the `nodes` table.</thought>
+<action>Getting all node titles from the `nodes` table</action>
 <code>
 cur.execute("SELECT title FROM nodes;")
 titles = [row[0] for row in cur.fetchall() if row[0]]
@@ -183,7 +183,7 @@ Sample titles: ['"2024-05-31"', '"2024-05-29"', '"2024-05-30"', '"2024-05-25"', 
 <thought>That's a lot of nodes. We'll have to be careful when processing that much data. Also - what's up with those nested quotes? This might be problematic later on.</thought>
 
 
-<thought>Cleaning titles by removing outer quotes if present</thought>
+<action>Cleaning titles by removing outer quotes if present</action>
 <code>
 titles_cleaned = [t[1:-1] if t.startswith('"') and t.endswith('"') else t for t in titles]
 print("Sampled cleaned titles:")
@@ -195,11 +195,9 @@ Sampled cleaned titles:
   Beginning: ['2024-05-31', '2024-05-29', '2024-05-30', '2024-05-25', '2024-05-27']
   End: ['2025-01-18', 'Orthogonal complement', 'Schur decomposition', 'Common Taylor expansions', 'My: context for LLMs']
 ]]></result>
-<thought>Seems to have worked.</thought>
+<thought>Seems to have worked. Now that we have clean titles, we can embed them --- but first, we need to load an embedding model. This tends to be an expensive operation, so we'll time it.</thought>
 
-
-
-<thought>Loading a SBERT model. This tends to be an expensive operation, so we'll time it.</thought>
+<action>Loading SBERT model: `all-MiniLM-L6-v2`</action>
 <code>
 %%time
 from sentence_transformers import SentenceTransformer
@@ -216,16 +214,19 @@ SentenceTransformer(
   (2): Normalize()
 )
 </result>
-<thought>Seems to have worked. Not instantaneous, but reasonably fast. Interestingly, the max sequence length is 256. Might become important.</thought>
+<thought>Seems to have worked. Not instantaneous, but reasonably fast. Interestingly, the max sequence length is 256. Might become important. We should truncate the titles to a reasonable length - maybe 100 characters.</thought>
 
 
-<thought>We should truncate the titles to a reasonable length - maybe 100 characters.</thought>
+<action>Truncating titles to 100 characters</action>
 <code>
-titles_truncated = [t[:100] for t in titles_cleaned]
+max_title_len = 100
+titles_truncated = [t[:max_title_len] for t in titles_cleaned]
 </code>
 <result/>
 
-<thought>Computing embeddings of cleaned, truncated titles. Let's use a batch size of 32 to strike a balance between memory usage and speed.</thought>
+<thought>No issue here. Now, we'll embed them. Let's use a batch size of 32 to strike a balance between memory usage and speed.</thought>
+
+<action>Computing embeddings of cleaned, truncated titles</action>
 <code>
 embeddings = model.encode(
     titles_truncated,
@@ -237,9 +238,9 @@ print(f"Computed embeddings: {embeddings.shape}")
 <result><![CDATA[
 Computed embeddings: (3416, 384)
 ]]></result>
-<thought>We've got our embeddings, in a `(num_samples, embed_dim)` tensor.</thought>
+<thought>We've got our embeddings, in a `(num_samples, embed_dim)` tensor. Next, dimensionality reduction.</thought>
 
-<thought>Reducing dimensionality from 384 to 2 with UMAP</thought>
+<action>Reducing dimensionality from 384 to 2 with UMAP</action>
 <code>
 reducer = umap.UMAP(n_components=2, random_state=42)
 coords = reducer.fit_transform(embeddings)
@@ -248,8 +249,9 @@ print(f"Reduced to 2D: {coords.shape}")
 <result>
 Reduced to 2D: (3416, 2)
 </result>
+<thought>Next up: plotting.</thought>
 
-<thought>Creating a scatter plot of the 2D points</thought>
+<action>Creating scatter plot</action>
 <code>
 plt.figure(figsize=(12, 8))
 plt.scatter(coords[:, 0], coords[:, 1], alpha=0.5, s=10)
@@ -258,10 +260,12 @@ plt.xlabel('UMAP 1')
 plt.ylabel('UMAP 2')
 </code>
 <result/>
+<thought>Let's improve the plot before saving. Points without labels are not very meaningful, but we should be careful about overcrowding, since we have a lot of points. Let's only annotate a random subset of the points.</thought>
 
-<thought>Add annotations to a few randomly-selected points, avoiding overcrowding</thought>
+<thought>Using `plt.annotate` on a few points.</thought>
 <code>
-indices = np.random.choice(len(titles_truncated), size=20, replace=False)
+n_annotations = 20
+indices = np.random.choice(len(titles_truncated), size=n_annotations, replace=False)
 
 for i in indices:
     plt.annotate(titles_truncated[i],
@@ -271,7 +275,7 @@ for i in indices:
 </code>
 <result/>
 
-<thought>Saving the final plot to `./org_roam_map.png`</thought>
+<action>Saving the final plot to `./org_roam_map.png`</action>
 <code>
 plt.tight_layout()
 plt.savefig('org_roam_map.png', dpi=300, bbox_inches='tight')

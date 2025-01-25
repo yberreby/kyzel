@@ -8,6 +8,7 @@ from IPython import get_ipython
 
 from ..types import Session
 from ..event.types import (
+    AssistantAction,
     HumanMsg,
     AssistantThought,
     CodeFragment,
@@ -42,6 +43,9 @@ def event_html_inner(event: EventBody) -> str:
         case AssistantMsg():
             formatted = format_markdown(event.text)
             return f"<div class='event assistant'>{formatted}</div>"
+        case AssistantAction():
+            # Just a title, no need for markdown
+            return f"<div class='event action'>{event.text}</div>"
         case ExecutionResult():
             # Keep execution results verbatim
             return f"<div class='event execution'>{event.output}</div>"

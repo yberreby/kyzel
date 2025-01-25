@@ -4,6 +4,7 @@ from .types import (
     CodeFragment,
     AssistantMsg,
     ExecutionResult,
+    AssistantAction,
     EventBody,
 )
 from .from_xml import event_from_xml
@@ -15,6 +16,7 @@ __all__ = [
     "CodeFragment",
     "AssistantMsg",
     "ExecutionResult",
+    "AssistantAction",
     "EventBody",
     # Conversion
     "event_from_xml",
@@ -23,6 +25,7 @@ __all__ = [
 individual_event_types = [
     HumanMsg,
     AssistantThought,
+    AssistantAction,
     CodeFragment,
     AssistantMsg,
     ExecutionResult,
