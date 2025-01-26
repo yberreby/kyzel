@@ -60,13 +60,13 @@ def get_next_state(state: State, text: str) -> Tuple[State, Optional[str]]:
             return State.THOUGHT_CONTENT, "<thought>"
 
         case State.THOUGHT_CONTENT if "</thought>" in text:
-            return State.ACTION_OPEN, "<action>"
+            return State.ACTION_OPEN, "\n<action>"
 
         case State.ACTION_OPEN:
             return State.ACTION_CONTENT, None
 
         case State.ACTION_CONTENT if "</action>" in text:
-            return State.CODE_FENCE_START, code_start
+            return State.CODE_FENCE_START, "\n" + code_start
 
         case State.CODE_FENCE_START:
             return State.CODE_CONTENT, None
@@ -74,7 +74,7 @@ def get_next_state(state: State, text: str) -> Tuple[State, Optional[str]]:
         case State.CODE_CONTENT:
             has_content, should_end = get_code_block_status(text)
             if has_content and should_end:
-                return State.DONE, None
+                return State.DONE, "\n"
 
     return state, None
 

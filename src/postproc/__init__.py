@@ -2,6 +2,7 @@
 Structured interpretation of LLM output.
 """
 
+import traceback
 from typing import List
 import re
 import markdown2
@@ -48,17 +49,22 @@ def parse_constrained_message(text: str) -> List[EventBody]:
     Parse a message from the constrained generation into a sequence of events.
     Expected format: <thought>...</thought> <action>...</action> ```python\n...\n```
     """
-    # Extract thought, get remaining text
-    thought_text, remaining = extract_tag_content(text, "thought")
-    events: List[EventBody] = [AssistantThought(thought_text)]
+    try:
+        # Extract thought, get remaining text
+        thought_text, remaining = extract_tag_content(text, "thought")
+        events: List[EventBody] = [AssistantThought(thought_text)]
 
-    # Extract action, get remaining text
-    action_text, remaining = extract_tag_content(remaining, "action")
-    events.append(AssistantAction(action_text))
+        # Extract action, get remaining text
+        action_text, remaining = extract_tag_content(remaining, "action")
+        events.append(AssistantAction(action_text))
 
-    # Clean up remaining text and parse as markdown
-    remaining = remaining.strip()
-    code = extract_code_from_markdown(remaining)
-    events.append(CodeFragment(code))
+        # Clean up remaining text and parse as markdown
+        remaining = remaining.strip()
+        code = extract_code_from_markdown(remaining)
+        events.append(CodeFragment(code))
+    except Exception as e:
+        print("Message parsing failed for message:", text)
+        raise ValueError(f"Failed to parse constrained message: {e}")
+        traceback.print_exc()
 
     return events

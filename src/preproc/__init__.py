@@ -2,7 +2,7 @@
 At any given point, a session can be flattened into a list of ChatML messages,
 applying any appropriate rewriting transformations.
 """
-
+import traceback
 from typing import Optional
 from src.types.chatml import Conversation, Msg as ChatMLMsg, NormalRole
 from src.types import (
@@ -15,6 +15,7 @@ from src.types import (
     CodeFragment,
     ExecutionResult,
 )
+from src.postproc import parse_constrained_message
 
 
 def event_source_role(event: EventBody) -> NormalRole:
@@ -39,7 +40,7 @@ def as_code_fences(code: str) -> str:
     # Could evaluate whether 'py' is more common...
     # Empirically, it seems that Phi4 likes 'python' out of the box.
     # These newlines are obviously IMPORTANT.
-    return f"```python\n{code}\n```"
+    return f"\n```python\n{code}\n```\n"
 
 
 def as_thought_block(text: str) -> str:
@@ -90,12 +91,31 @@ def ensure_consistency(conv: Conversation):
                 f"Found two messages of the same role in a row: {conv[i - 1]} and {conv[i]}, in conversation: {conv}"
             )
 
+def validate_flattened_assistant_msg(msg: ChatMLMsg):
+    """
+    Ensure that an assistant message conforms to our expected structure.
+    Raises ValueError with details if validation fails.
+    """
+
+    try:
+        # If this succeeds, the message looks valid
+        parse_constrained_message(msg["content"])
+    except Exception as e:
+        # Get detailed message including the problematic content
+        traceback.print_exc()
+        raise ValueError(
+            f"Assistant message failed validation:\n"
+            f"Content: {msg['content']}\n"
+            f"Error: {str(e)}"
+        )
 
 def session_to_chatml(session: Session) -> Conversation:
     """
     For now, no deletion or anything fancy.
     Just coalescing of relevant contiguous messages.
     No system prompt.
+
+    Enforces parser-based validation of flattened assistant messages.
     """
     conv: Conversation = []
     prev_role: Optional[NormalRole] = None
@@ -118,5 +138,10 @@ def session_to_chatml(session: Session) -> Conversation:
 
     # Cheap sanity check.
     ensure_consistency(conv)
+
+    # Validate all assistant messages
+    for msg in conv:
+        if msg["role"] == "assistant":
+            validate_flattened_assistant_msg(msg)
 
     return conv
