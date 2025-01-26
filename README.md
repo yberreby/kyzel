@@ -109,7 +109,7 @@ We're not trying to inject fundamentally new knowledge into the model either, ju
 
 For our purposes, **data quality > quantity**.
 
-We're starting with _one_ handwritten example: [`c0.xml`](./data/c0.xml). Yes, one (1). This _one_ example already gives a useful training signal. We'll iterate from there.
+We're starting with _one_ handwritten example: [`s0.xml`](./data/sessions/s0.xml). Yes, one (1). This _one_ example already gives a useful training signal. We'll iterate from there.
 
 In LoRA, the original pretrained weights are frozen and neatly separated from the low-rank weight delta that we will be learning. In the limit, as this delta tends to zero (w.r.t. some matrix norm), we get back the original pretrained model - our baseline, which is not useless. On the other hand, if the delta is large (or happens to destabilize crucial features - which is harder to characterize), it's easy to get gibberish back. Somewhere in between, there should be a sweet spot - close enough to the original model, but slightly adjusted to _better_ fit our task. Not perfectly, just better. That's already something.
 
