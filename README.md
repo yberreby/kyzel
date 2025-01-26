@@ -1,88 +1,150 @@
-# ⚒️ `kyzel` - local coding AI in your image
+# ⚒️ `kyzel` - local-first REPL assistant
 
-**This is a work in progress.**
+_kyzel (/ˈkɪzəl/): mispronunciation of "chisel"._
 
-Goals:
-- *make running local models compelling enough that you'd actually want to do so* - and not just because you can't / don't want to use cloud models for privacy reasons.
-- have fun experimenting with LLMs :)
+**Hook a pretrained SoTA LLM running on **your hardware** to your IPython REPL**.
 
-## Concretely?
+- Ask questions and let a local LLM write and run Python code to answer them.
+  - **Inference runs on your hardware**: no Internet connectivity required unless you opt-in.
+  - **Code runs on your machine, with your environment**: use it to explore a new library, debug a piece of code, etc.
+  - **No untrusted code execution**: approve code fragments in 1-2 keystrokes.
+  - **Dissociated LLM inference and execution environment**: if you have a laptop and a GPU workstation/server, you can run the inference server on the workstation (`src.server`) while executing the generated code on your laptop.
+- **Interject** to steer the model (your guidance is precious!), or **stay silent** and let it decide what to do next by itself when the path ahead is clear.
+- Easily **collect private, on-device data** from your interactions with the model.
+- **Locally fine-tune** the model on this data with QLoRA on a single GPU, in minutes.
 
-For users:
-- [X] **Streamline high-interactivity tasks**: ask a local LLM to work with your files, analyze a dataset, iteratively debug a piece of code, figure out the idiosyncracies of a REST API, etc.
-- [X] **Built for the real world**: the overarching goal is to make this practical enough that you'd actually want to use it for day-to-day tasks.
-- [X] **Efficiency at the forefront**: we do our best to save your time, but also your GPU's: we adopt token-efficient strategies wherever possible.
-- [X] **Privacy first**: Your data never leaves your device, unless you explicitly opt into using cloud models or sharing data with us in order to improve our models.
-- [X] **Python-first**: LLMs are best at writing Python over other languages, so that's what we're focusing on
-- [ ] **Plug-and-play**: download and run one of our fine-tuned models on your machine in minutes, with minimal setup.
-- [ ] **The more you use it, the better it gets**: collect private interaction data as you go and fine-tune your model locally with it.
-
-For researchers / ML engineers:
-- [X] **Distribution drift paranoia**: we do our best to minimize distribution drift between pretrained public models and our approach, in order to fine-tune with less data and less computing power, and get better results in inference.
-- [X] **Constrained generation**: we use a custom `LogitsProcessor` to enforce correct formatting, minimizing "cosmetic" failures where the model has the right spirit but the wrong letter.
-  - [X] **Rejection sampling**: supervised QLoRA fine-tuning on logs of satisfactory sessions is a simple yet effective way of steering the model.
-- [X] **On-device fine-tuning with [Unsloth](https://unsloth.ai/)**: none of this would be possible without their excellent work.
-  - [X] **SFT with QLoRA**
-  - [ ] **Low-data RL with DPO**
-- [X] **Powered by `Phi4`** on larger GPUs (24GB VRAM), **`Qwen 2.5 Coder 3B`** on smaller ones (8GB VRAM). Designed to be repurposed with minimal for other/new models.
-- [ ] **Didactical approach**: detailed writeups and emphasis on clean, minimal, robust code.
-
-## Lingo
-- A *conversation* is a sequence of (ChatML) messages. It's a flat stream, or list.
-- An *event* is something that happened
-  - Examples: the user sent a message to the model; the model sent a message to the user; the model thought to itself; the model requested execution of some code; the execution yielded some result...
-  - One could consider less obvious events: the user *preferred* such-and-such generation over this other one; the user reworded the model's output
-  - Importantly, the user can choose to roll back to an earlier point in the conversation (not necessarily perfectly, but at least roll back the chat history), and they do so through relevant events.
-- A *session* contains many events. It's also a list, but it implicitly can branch out into many conversation paths, potential or actual.
-
-## Repository structure
-
-- `src`: Python code
-- `data`: training/validation data
-- `run`: runtime files
-
-## `llmexport` exclude rules for core logic only
-
-If using [`llmexport`](https://github.com/yberreby/llmexport), and wanting to focus on core logic, you can exclude display logic, sample data, tests, etc. with the following command:
-
-```
-llmexport --stdout * -i 'src/display/*' -i 'data/*' -i '*test*' -i 'nb/*'
-```
 
 ## Quickstart
 
 Prerequisites:
-- Modern NVIDIA GPU, preferably 24 GB VRAM (RTX 4090), at least 8GB VRAM (RTX 4060).
+- [`uv`](https://docs.astral.sh/uv/) for Python dependency management
+- Modern NVIDIA GPU (tested on RTX 4090)
 - Linux (tested on Arch Linux)
 
-In a shell:
-```
-# Create venv, install dependencies. This will take a while.
+Initial setup:
+```zsh
+# Create venv, install dependencies. This will take a while - we have large binary dependencies.
 ./setup.sh
 
-# Convert notebooks
-uv run jupytext --to ipynb nb/*
+# Convert Jupytext notebooks to .ipynb
+uv run jupytext --to ipynb nb/*.py
 
 # Run tests
 uv run -m pytest
+```
 
-# Run Jupyter
+To **start the inference server** on a machine with a NVIDIA GPU and at least 12GB of VRAM:
+```
+# This will download a pretrained model on first run, then start a tiny, unauthenticated REST API on 127.0.0.1:8000.
+# Don't expose it publicly, use SSH tunneling.
+# This API cannot execute any code, only generate tokens.
+uv run -m src.server
+```
+
+Then, on the code execution machine (can be same as inference machine, or different), **start a Jupyter server**:
+```zsh
 uv run jupyter-lab .
 ```
 
+Then start playing around with the notebooks in the `nb/` directory.
 
 
-## The story
+## Behind this project
+
+_This project is a work-in-progress. It is not yet production-ready, but it is functional._
+
+I'm a neuro-AI researcher. This is a **solo, hobby project** that I hack around on in my free time, started because I wanted to see what the SoTA of local LLMs could do by now, at an inference/training speed that I can tolerate and on hardware that isn't prohibitively expensive.
+
+That being said, you should generally expect **high code quality**. I've done related POCs before (unpublished), which were somewhat-functional and got me where I wanted to be, but the code was _atrocious_ spaghetti cobbled together with Claude 3.5 Sonnet in 2-3 hour hacking sessions. In contrast, **I want this codebase to be a joy to read and develop**. Everything should be clearly organized and mostly self-documenting. Please shame me in issues if this is not the case (though in those instances, I am likely aware already, and it's on my TODO list).
+
+However, you may encounter dependency issues, quirks, regressions, etc. Sorry for those; limited bandwidth. Please also open an issue in that case, or better yet, a pull request.
+
+The LLM world moves _fast_, details are _exceedingly important_ (woops, you had an extra trailing newline? here is your _huge perplexity increase_!), and it can be hard to find full working examples. I hope this repo can be a step toward that.
+
+And who knows - maybe it'll get to the point where it's user-friendly enough that you'd care even if ML engineering isn't your thing :)
+
+
+## Juicy bits implemented so far
+
+Note: all notebooks are stored using [Jupytext](https://github.com/mwouts/jupytext); you must **convert them to .ipynb** before running them in Jupyter! To do so, run `uv run jupytext --to ipynb nb/*.py`.
+
+- **Constrained generation** with a custom [LogitsProcessor](https://huggingface.co/docs/transformers/v4.48.0/en/internal/generation_utils#transformers.LogitsProcessor):
+  - Ensures that even without any fine-tuning, LLM outputs always contain a `<thought>` tag (for it to do CoT), an `<action>` tag (for it to describe its next action at a high level), and a Python code block to be executed in the REPL upon user approval.
+  - This can be **surprisingly non-trivial to get right**, given the existence of multiple tokenizations of a given piece of text, the presence of undesirable trailing characters after an expected token, etc.
+  - See implementation: [`src.generate.constrain`](./src/generate/constrain/__init__.py_)
+  - Upon generation, model outputs are parsed to extract structured data.
+- **Model-agnostic events**:
+  - **Events** ([`src.types.events`](./src/types/events.py)) are an abstraction over assistant/user actions, decoupled from formatting/tokenization concerns.
+  - **Sessions** ([`src.types.session`](./src/types/session.py)) are collections of events that happened over a given user-AI interaction.
+  - Events, and by extension **sessions**, can easily be converted to/from XML for storage and sharing: see [`src.persist`](./src/persist/).
+- **Rich, colorful display in Jupyter**: custom HTML formatting ([`src.display.html`](./src/display/html)) in order to make working with event streams / sessions a joy.
+- **Human-in-the-loop data collection**:
+  - Base or fine-tuned models can be used interactively with the `nb/interactive` notebook (still rather primitive, but generally functional).
+  - Satisfactory interaction sessions can be saved to XML from the notebook.
+  - The plaintext XML format enables easy manual correction of small missteps in the text editor of your choice.
+  - Once a few sessions have been collected, they can be **flattened into token streams** and **converted to a HuggingFace [`Dataset`](https://huggingface.co/docs/datasets/en/package_reference/main_classes#datasets.Dataset)** using the `xml_to_dataset` notebook.
+- **Quantized Phi-4 fine-tuning with Unsloth**
+  - `nb/train` allows for low-data fine-tuning of Phi-4 on the collected data with **as little as 10-13 GB of VRAM** thanks to [Unsloth](https://unsloth.ai/).
+
+
+## Making data repurposable
+
+When fine-tuning LLMs, *formatting matters*. Same content, laid out differently = vastly different perplexity, training signal, performance.
+
+For this reason, we have a simple at-rest data storage format that easily allows saved sessions to be repurposed.
+
+We use a custom XML schema to cleanly delineate semantically-distinct events, such as:
+- **Human-written messages**: e.g. `find my most-backlinked org-roam nodes`, `no, don't use this library, use XXX`
+- **Model "thoughts"**, which serve as communication for the user + CoT for the model itself: e.g. `Loading a SBERT model. This tends to be an expensive operation, so we'll time it.`
+- **Code** that the model wants to run immediately, getting back its output: e.g. `import torch; torch.cuda.is_available()`
+- **Execution output / result from the said code**: e.g. `True`, `ImportError: No module named 'torch'`
+
+With this, we can use any format we want for the model's input/output: code could be wrapped in triple backticks, in XML tags, in-between special tokens, etc. This is especially useful for handling new model releases - if we collectively switch away from ChatML, no problem: just write a new conversion routine, and token streams conforming to `<standard of the day>` can be generated on the fly.
+
+## FAQ
+
+## But don't you need tens of thousands of examples to fine-tune LLMs?
+
+Not necessarily.
+
+The models we consider were **pretrained** on trillions of tokens and **instruct-tuned** extensively. They can _already_ be steered rather decently without fine-tuning, with just a system prompt and care for staying close to the original data distribution. We're just going to _improve upon this baseline_. We're not starting from scratch.
+
+We're not trying to inject fundamentally new knowledge into the model either, just to _repurpose_ existing knowledge contained within its pretrained weights. This means we shouldn't need that many steps / trainable parameters / examples.
+
+For our purposes, **data quality > quantity**. Even one high-quality sample, used carefully, can provide a useful learning signal.
+
+In LoRA, the original pretrained weights are frozen and neatly separated from the low-rank weight delta that we will be learning. In the limit, as this delta tends to zero (w.r.t. some matrix norm), we get back the original pretrained model - our baseline, which is not useless (given its existing abilities + system prompt + our constrained generation pipeline). On the other hand, if the delta is large (or happens to destabilize crucial features - which is harder to characterize), it's easy to get gibberish back. Somewhere in between, there should be a sweet spot - close enough to the original model, but slightly adjusted to _better_ fit our task. Not perfectly, just better. That's already something.
+
+### Why use a custom output grammar/format instead of JSON tool use?
+
+Output formats involving deep nesting, escaping, quoting, etc, are not great for LLMs, unless they were specifically trained to handle them. Tool use models _are_ often trained for JSON, but these tend to be biased toward minimizing the number of tool calls, which we don't want here - the model should "feel free" to do many REPL roundtrips, prioritizing correctness and knowledge discovery.
+
+This formatting strategy is not a radical idea. Consider **CodeAct** by Apple AI (see [paper](https://arxiv.org/abs/2402.01030), [dataset](https://huggingface.co/datasets/xingyaoww/code-act?row=1)): the model thinks in plaintext and outputs code within `<execute>` XML tags.
+
+
+### Why not just use a cloud model?
+
+- Your data leaves your machine - no-go for many usecases.
+- Can get expensive quickly (though).
+- Can't fully customize the grammar.
+- Often, cannot fine-tune, or have to do so through an idiosyncratic proprietary API.
+
+That being said, local models running on 1 GPU won't be at frontier-level intelligence.
+
+As such, it makes sense to have the option to request help from a cloud model when faced with a complex task - but only when needed (to reduce costs), and with the user's explicit consent. Not implemented for now, but I had it in a previous POC, and it worked very well.
+
+
+## Original story (written early into the project)
 
 I've seen local LLMs get better and better for a while now. Yet, somehow, I never found myself having any use for them. With each new release that fits on my hardware, I would fire up [`ollama`](https://github.com/ollama/ollama), ask some test questions, then go back to doing real work with much smarter (read: useful) proprietary models - usually Claude 3.5 Sonnet.
 
 But then, every once in a while, I'd find myself debugging or exploring something with Claude, and I'd think "this would be so much simpler if I could _let the model do some exploration on its own_". Try some things, see what happens, and then report back. In many tasks, *context is key* - intelligence can only get you so far. A common way to get around this is to paste as much context as possible, but _gathering_ the appropriate context can be time-consuming when it is not just lines of code / documentation - think specific system configuration, behavior of some new API, etc. Yet, it's not necessarily that _complex_ to do - it's often a rather mechanical back-and-forth with the environment. Some intelligence/knowledge is required, of course, but it's not necessarily the bottleneck.
 
-One could just load up a lot of money into their favorite AI cloud provider, use of the many fancy "AI coding agent" projects out there, and get rolling. However, this feels unsatisfactory. It also quickly gets ridiculously expensive. A single-person non-trivial project is easily 50-100k tokens. As of 2025-01-22, that's $0.15 - $0.30 per message with Claude 3.5 Sonnet (without prompt caching), so you could spend $1.5 - $3.0 in _10-30 seconds_ with a tight, (semi-)automated feedback loop that takes your code as context and iterates in a REPL. This is not sustainable for the vast majority of people.
+One could just load up a lot of money into their favorite AI cloud provider, use of the many fancy "AI coding agent" projects out there, and get rolling. However, this feels unsatisfactory. It also quickly gets prohibitively expensive. A single-person non-trivial project is easily 50-100k tokens. As of 2025-01-22, that's $0.15 - $0.30 per message with Claude 3.5 Sonnet (without prompt caching), so you could spend $1.5 - $3.0 in _10-30 seconds_ with a tight, (semi-)automated feedback loop that takes your code as context and iterates in a REPL. This is not sustainable for the vast majority of people.
 
 Even without taking your whole codebase as context, steering a LLM purely in-context, with prompt engineering, in order to make it adhere to a specific response format/style/approach can require inputting a significant amount of tokens (and paying for them, with money or local compute). Seems like a waste. **What works super well for "style" / formatting / specific interaction patterns again? LoRA and the likes**. Too bad many cloud models can't be fine-tuned this way, and when they do, it's with a proprietary API that might go away at any time.
 
-In January 2025, [Phi4 was released on HuggingFace](https://huggingface.co/microsoft/phi-4) (thanks, Microsoft!). It's a 14-billion parameter LLM with a out-of-the-box context length of 16k tokens. A quantized version can run in as little as 11GB of VRAM.
+In January 2025, [Phi4 was released on HuggingFace](https://huggingface.co/microsoft/phi-4) (thanks, Microsoft!). It's a 14-billion-parameter LLM with a out-of-the-box context length of 16k tokens. A quantized version can run in as little as 11GB of VRAM.
 
 I made a few throwaway POCs with it, hooking it up to an IPython console with manual validation (in my shell) or fully-autonomous execution (in a Docker container), and found it impressively capable for its size and speed. It does paint itself into corners, get confused, make simple mistakes, etc, but even zero-shot, it holds promise.
 
@@ -99,30 +161,6 @@ Note that a lot _could_ be done without any fine-tuning, but spending hours tryi
 I had only tried finetuning a LLM once, with a short hacking session back in the LLaMA 1 days (eternity ago!). This seemed like a great excuse to see how tooling, fine-tuning methods and models have evolved since then!
 
 
-## But don't you need tens of thousands of examples to fine-tune LLMs?
+## License
 
-Why would you?
-
-The models we consider were **pretrained** on trillions of tokens and **instruct-tuned** extensively. They can _already_ be steered rather decently without fine-tuning, with just a system prompt and care for staying close to the original data distribution. We're just going to _improve upon this baseline_. We're not starting from scratch.
-
-We're not trying to inject fundamentally new knowledge into the model either, just to _repurpose_ existing knowledge contained within its pretrained weights. This means we shouldn't need that many steps / trainable parameters / examples.
-
-For our purposes, **data quality > quantity**.
-
-We're starting with _one_ handwritten example: [`s0.xml`](./data/sessions/s0.xml). Yes, one (1). This _one_ example already gives a useful training signal. We'll iterate from there.
-
-In LoRA, the original pretrained weights are frozen and neatly separated from the low-rank weight delta that we will be learning. In the limit, as this delta tends to zero (w.r.t. some matrix norm), we get back the original pretrained model - our baseline, which is not useless. On the other hand, if the delta is large (or happens to destabilize crucial features - which is harder to characterize), it's easy to get gibberish back. Somewhere in between, there should be a sweet spot - close enough to the original model, but slightly adjusted to _better_ fit our task. Not perfectly, just better. That's already something.
-
-## Making data repurposable
-
-When fine-tuning LLMs, *formatting matters*. Same content, laid out differently = vastly different perplexity, training signal, performance.
-
-For this reason, we quickly design a simple at-rest data storage format that easily allows repurposing samples. A conversation, or session, is a sequence of "events". An event can be emitted by the user or by the model.
-
-We use a custom XML schema to cleanly delineate:
-- **Human-written messages**: e.g. `find my most-backlinked org-roam nodes`, `no, don't use this library, use XXX`
-- **Model "thoughts"**, which serve as communication for the user + CoT for the model itself: e.g. `Loading a SBERT model. This tends to be an expensive operation, so we'll time it.`
-- **Code** that the model wants to run immediately, getting back its output: e.g. `import torch; torch.cuda.is_available()`
-- **Execution output / result from the said code**: e.g. `True`, `ImportError: No module named 'torch'`
-
-This this, we can use any format we want for the model's input/output: code could be wrapped in triple backticks, in XML tags, in-between special tokens, etc. This is especially useful for handling new model releases - if we collectively switch away from ChatML, no problem: just write a new conversion routine, and token streams conforming to `<standard of the day>` can be generated on-the-fly.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
