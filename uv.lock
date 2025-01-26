@@ -724,6 +724,21 @@ http = [
 ]
 
 [[package]]
+name = "gguf"
+version = "0.14.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "pyyaml" },
+    { name = "sentencepiece" },
+    { name = "tqdm" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e4/51/d532d776d01d9ed60d930fe58554ecb05806fc9aaffa2400344d3a9d630b/gguf-0.14.0.tar.gz", hash = "sha256:d9996f197a777831cf9e01efac24cbfa817787375305b8c4ee16074778e2bce8", size = 69683 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/94/ee/0301c4a2bdb43da8d059d67382ec7ca554677366ebb73db82b690a10c98a/gguf-0.14.0-py3-none-any.whl", hash = "sha256:d279b33cd743d6211c09d96f0797eb36652c0d9d90844f8986a7c25e445906c4", size = 76159 },
+]
+
+[[package]]
 name = "h11"
 version = "0.14.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1309,6 +1324,7 @@ name = "kyzel"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "gguf" },
     { name = "ipympl" },
     { name = "ipython" },
     { name = "ipywidgets" },
@@ -1317,6 +1333,8 @@ dependencies = [
     { name = "litellm" },
     { name = "markdown2" },
     { name = "matplotlib" },
+    { name = "pip" },
+    { name = "protobuf" },
     { name = "pygments" },
     { name = "pytest" },
     { name = "setuptools" },
@@ -1327,6 +1345,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "gguf", specifier = ">=0.14.0" },
     { name = "ipympl", specifier = ">=0.9.6" },
     { name = "ipython", specifier = ">=8.31.0" },
     { name = "ipywidgets", specifier = ">=8.1.5" },
@@ -1335,6 +1354,8 @@ requires-dist = [
     { name = "litellm", specifier = ">=1.59.3" },
     { name = "markdown2", specifier = ">=2.5.2" },
     { name = "matplotlib", specifier = ">=3.10.0" },
+    { name = "pip", specifier = ">=24.3.1" },
+    { name = "protobuf", specifier = ">=3.20.3" },
     { name = "pygments", specifier = ">=2.19.1" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "setuptools", specifier = ">=75.8.0" },
@@ -2037,6 +2058,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/e5/fb/a7960e838bc5df57a2ce23183bfd2290d97c33028b96bde332a9057834d3/pillow-11.1.0-cp313-cp313t-win32.whl", hash = "sha256:dda60aa465b861324e65a78c9f5cf0f4bc713e4309f83bc387be158b077963d9", size = 2295494 },
     { url = "https://files.pythonhosted.org/packages/d7/6c/6ec83ee2f6f0fda8d4cf89045c6be4b0373ebfc363ba8538f8c999f63fcd/pillow-11.1.0-cp313-cp313t-win_amd64.whl", hash = "sha256:ad5db5781c774ab9a9b2c4302bbf0c1014960a0a7be63278d13ae6fdf88126fe", size = 2631595 },
     { url = "https://files.pythonhosted.org/packages/cf/6c/41c21c6c8af92b9fea313aa47c75de49e2f9a467964ee33eb0135d47eb64/pillow-11.1.0-cp313-cp313t-win_arm64.whl", hash = "sha256:67cd427c68926108778a9005f2a04adbd5e67c442ed21d95389fe1d595458756", size = 2377651 },
+]
+
+[[package]]
+name = "pip"
+version = "24.3.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f4/b1/b422acd212ad7eedddaf7981eee6e5de085154ff726459cf2da7c5a184c1/pip-24.3.1.tar.gz", hash = "sha256:ebcb60557f2aefabc2e0f918751cd24ea0d56d8ec5445fe1807f1d2109660b99", size = 1931073 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ef/7d/500c9ad20238fcfcb4cb9243eede163594d7020ce87bd9610c9e02771876/pip-24.3.1-py3-none-any.whl", hash = "sha256:3790624780082365f47549d032f3770eeb2b1e8bd1f7b2e02dace1afa361b4ed", size = 1822182 },
 ]
 
 [[package]]
