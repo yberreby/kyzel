@@ -22,7 +22,8 @@ import sys
 sys.path.append('..')
 
 # %%
-from src.generate.llm import LLM
+import requests
+import uuid
 from src.persist.load import session_from_file
 from src.persist.save import to_file
 from src.preproc import session_to_chatml, event_source_role
@@ -30,18 +31,14 @@ from src.postproc import parse_constrained_message
 from src.run.execute import IPythonExecutor
 from src.run.format import LLMFormatter
 from src.types import Session, HumanMsg, ExecutionResult, CodeFragment, ResumeFrom, SessionEvent, AssistantThought, AssistantAction, ExecutionResult
-import uuid # Import uuid for generating event IDs
 
+
+# %%
+SERVER_URL = "http://127.0.0.1:8000/generate"
 
 # %%
 max_seq_length = 16000
 max_new_tokens = max_seq_length
-
-# %%
-llm = LLM(
-    model_name="../run/ckpt/phi4_lora", # specify to load a LoRA finetune
-    max_seq_length=max_seq_length
-)
 
 # %%
 from IPython.display import clear_output
@@ -57,7 +54,19 @@ def _process_session_events():
     # Convert session to ChatML
     conversation = session_to_chatml(session)
 
-    raw_response = llm.generate(conversation, max_new_tokens=max_new_tokens)
+    # Send to remote server
+    try:
+        response = requests.post(
+            SERVER_URL,
+            json={
+                "conversation": conversation,
+                "max_new_tokens": max_new_tokens
+            }
+        ).json()
+        raw_response = response["response"]
+    except Exception as e:
+        print(f"Remote generation failed: {e}")
+        return
     # Uncomment for debugging:
     # print("Raw LLM response:", raw_response)
 
