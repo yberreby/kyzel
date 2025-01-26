@@ -127,10 +127,10 @@ train_dataset['text'][0][:100]
 # %%
 # Configure training
 config_args = {
-    "learning_rate": 2e-4,
+    "learning_rate": 1e-4,
     "weight_decay": 0.1, # yep.
     "warmup_steps": 10,
-    "num_train_epochs": 25,
+    "num_train_epochs": 50,
     "max_seq_length": max_seq_length,
     "dataset_num_proc": 1,
     "logging_steps": 1,
