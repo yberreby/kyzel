@@ -21,8 +21,7 @@ from src.types import (
 )
 from src.run.format import LLMFormatter
 from src.postproc import parse_constrained_message
-
-SYSTEM_PROMPT = "You are an IPython REPL assistant. Think to yourself in <thought>, succinctly (in 1-5 words) state what your next code block will do in <action>, then output a Python code block, whose results will be returned to you. Imports, variables, etc, are persistent. In your code, do not use comments. Reuse previously-defined variables, previous imports, etc. Avoid defining functions. Write as you would in Jupyter notebook, but use display() or print() explicitly."
+from src.prompts import DEFAULT_SYSTEM_PROMPT
 
 
 def event_source_role(event_body: EventBody) -> NormalRole:
@@ -101,7 +100,7 @@ def validate_flattened_assistant_msg(msg: ChatMLMsg):
 
 def session_to_chatml(session: Session) -> Conversation:
     """Convert session events to ChatML conversation format."""
-    system_msg: ChatMLMsg = {"role": "system", "content": SYSTEM_PROMPT}
+    system_msg: ChatMLMsg = {"role": "system", "content": DEFAULT_SYSTEM_PROMPT}
     conv: Conversation = [system_msg]
 
     prev_role: Optional[NormalRole] = None
