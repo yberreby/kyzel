@@ -1,10 +1,10 @@
 # ⚒️ `kyzel` - local coding AI in your image
 
-_Oh no, another fancy yet useless AI project..._
+**This is a work in progress.**
 
-Bear with me, this one is more than a thin wrapper around Anthropic/OpenAI.
-
-We're going to *make running local models compelling enough that you'd actually want to do so* - and not just because you can't use cloud models for privacy reasons.
+Goals:
+- *make running local models compelling enough that you'd actually want to do so* - and not just because you can't / don't want to use cloud models for privacy reasons.
+- have fun experimenting with LLMs :)
 
 ## Concretely?
 
