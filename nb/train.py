@@ -45,8 +45,8 @@ if JUST_TESTING_USE_TERRIBLE_YET_FAST_MODEL:
     warn("Will use a tiny model for speed - do not expect intelligence!")
     model_name = "unsloth/Qwen2.5-Coder-0.5B-Instruct-bnb-4bit"
 
-    # Qwen-2.5 should support up to 128k, but this is just for quick testing.
-    max_seq_length = 4096
+    # Qwen-2.5 should support up to 128k
+    max_seq_length = 8192
     
     short_model_name = "qwen-2.5-coder-0.5b"
     chat_template = "qwen-2.5"
@@ -56,7 +56,7 @@ if JUST_TESTING_USE_TERRIBLE_YET_FAST_MODEL:
             "learning_rate": 1e-4,
             "weight_decay": 0.1, # yep.
             "warmup_steps": 10,
-            "num_train_epochs": 20,
+            "num_train_epochs": 40,
         },
         "lora": {
             "rank": 1,
@@ -158,7 +158,10 @@ else:
 train_dataset['file']
 
 # %%
-eval_dataset['file']
+if eval_dataset:
+    print(eval_dataset['file'])
+else:
+    warn("No validation set")
 
 # %%
 train_dataset['text'][0][:100]
