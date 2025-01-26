@@ -20,6 +20,8 @@ from src.types import (
 )
 from src.postproc import parse_constrained_message
 
+SYSTEM_PROMPT = "You are an IPython REPL assistant. Think to yourself in <thought>, succinctly (in 1-5 words) state what your next code block will do in <action>, then output a Python code block, whose results will be returned to you. Imports, variables, etc, are persistent. In your code, do not use comments. Reuse previously-defined variables, previous imports, etc. Avoid defining functions. Write as you would in Jupyter notebook, but use display() or print() explicitly."
+
 
 def event_source_role(event_body: EventBody) -> NormalRole: # Expects EventBody now
     match event_body: # Matching on event_body
@@ -116,15 +118,23 @@ def session_to_chatml(session: Session) -> Conversation:
     """
     For now, no deletion or anything fancy.
     Just coalescing of relevant contiguous messages.
-    No system prompt.
+    Adds system prompt.
 
     Applies history rewriting based on ResumeFrom.
     Enforces parser-based validation of assistant messages.
     """
-    conv: Conversation = []
+
+    # Initialize conversation with system prompt
+    system_msg: ChatMLMsg = {
+        "role": "system",
+        "content": SYSTEM_PROMPT
+    }
+    conv: Conversation = [system_msg]
+
     prev_role: Optional[NormalRole] = None
     cut_off_index = None # Index to truncate conversation history if ResumeFrom is encountered
 
+    # This loop has not been carefully reviewed or tested yet.
     for i, session_event in enumerate(session.events): # Iterate through SessionEvents
         event = session_event.body # Access EventBody from SessionEvent
         if isinstance(event, ResumeFrom):

@@ -48,11 +48,11 @@ model, tokenizer = FastLanguageModel.from_pretrained(
 # Add LoRA
 model = FastLanguageModel.get_peft_model(
     model,
-    r=8,
+    r=1,
     target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
                    "gate_proj", "up_proj", "down_proj",],
-    lora_alpha=16,
-    lora_dropout=0.05,
+    lora_alpha=2,
+    lora_dropout=0,
     bias="none",
     use_gradient_checkpointing="unsloth",
     random_state=3407,
@@ -103,7 +103,7 @@ plt.show()
 n_samples = len(dataset)
 if n_samples > 1:
     eval_size = min(max(1, int(0.1 * n_samples)), n_samples - 1)
-    splits = dataset.train_test_split(test_size=eval_size, seed=3407)
+    splits = dataset.train_test_split(test_size=eval_size, seed=53)
     train_dataset = splits['train']
     eval_dataset = splits['test']
     print(f"Split: {len(train_dataset)} train, {len(eval_dataset)} eval samples")
@@ -118,6 +118,9 @@ train_dataset['file']
 # %%
 eval_dataset['file']
 
+# %%
+train_dataset['text'][0][:100]
+
 # %% [markdown]
 # ## Training
 
@@ -125,20 +128,20 @@ eval_dataset['file']
 # Configure training
 config_args = {
     "learning_rate": 2e-4,
-    "weight_decay": 1, # yep.
-    "warmup_steps": 5,
-    "num_train_epochs": 20,
+    "weight_decay": 0.1, # yep.
+    "warmup_steps": 10,
+    "num_train_epochs": 50,
     "max_seq_length": max_seq_length,
     "dataset_num_proc": 1,
     "logging_steps": 1,
     "per_device_train_batch_size": 1,
     "gradient_accumulation_steps": 4,
+    "output_dir": "../run/model_training_outputs",
     "fp16": not is_bfloat16_supported(),
     "bf16": is_bfloat16_supported(),
     "optim": "adamw_8bit",
     "lr_scheduler_type": "linear",
     "seed": 3407,
-    "output_dir": "../run/model_training_outputs",
     "report_to": "none",
     "packing": False,
 }
@@ -148,11 +151,11 @@ if eval_dataset is not None:
     config_args.update({
         "evaluation_strategy": "steps",
         "eval_steps": 1,
-        "save_strategy": "steps",
-        "save_steps": 5,
-        "load_best_model_at_end": True,
-        "metric_for_best_model": "loss",
-        "greater_is_better": False,
+        #"save_strategy": "steps",
+        #"save_steps": 5,
+        #"load_best_model_at_end": True,
+        #"metric_for_best_model": "loss",
+        #"greater_is_better": False,
     })
 
 # Initialize trainer

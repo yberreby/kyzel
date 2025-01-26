@@ -57,11 +57,6 @@ def _process_session_events():
     # Convert session to ChatML
     human_and_assistant_msgs = session_to_chatml(session)
 
-    # Apply system message
-    system_msg = {
-        "role": "system",
-        "content": "You are an IPython REPL assistant. Think to yourself in <thought>, succinctly (in 1-5 words) state what your next code block will do in <action>, then output a Python code block, whose results will be returned to you. Imports, variables, etc, are persistent. In your code, do not use comments. Reuse previously-defined variables, previous imports, etc. Avoid defining functions. Write as you would in Jupyter notebook, but use display() or print() explicitly."
-    }
     conversation = [system_msg] + human_and_assistant_msgs
 
     raw_response = llm.generate(conversation, max_new_tokens=max_new_tokens)
