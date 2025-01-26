@@ -38,7 +38,10 @@ max_seq_length = 16000
 max_new_tokens = 2048
 
 # %%
-llm = LLM(max_seq_length=max_seq_length)
+llm = LLM(
+    model_name="../run/ckpt/phi4_lora", # specify to load a LoRA finetune
+    max_seq_length=max_seq_length
+)
 
 # %%
 from IPython.display import clear_output
@@ -105,12 +108,11 @@ def process_user_input(query: str):
     global session
 
     # Create and add user message, with a new event ID
-    msg = HumanMsg(query)
-    session_event = SessionEvent(event_id=str(uuid.uuid4()), body=msg) # Generate event ID
-    session.events.append(session_event)
+    if query:
+        msg = HumanMsg(query)
+        session_event = SessionEvent(event_id=str(uuid.uuid4()), body=msg) # Generate event ID
+        session.events.append(session_event)
     _process_session_events()
-
-
 
 
 def regenerate_assistant_response():
@@ -167,54 +169,20 @@ def save_session():
 # Interactive loop
 print("Interactive IPython REPL assistant. Type 'help' for commands.")
 while True:
-    try:
-        query = input("\nEnter query ('help' for commands, Ctrl+C to exit): ")
-        if query.strip().lower() == 'help':
-            print("\nAvailable commands:")
-            print("- 'help': Show this help message")
-            print("- 'regenerate' or 'r': Regenerate assistant's last response")
-            print("- 'save' or 's': Save the current session")
-            print("- 'execute' or 'x': Execute code from the last assistant response (if any)") # More discoverable
-            print("- Ctrl+C: Exit interactive mode")
-            print("\nFor other input, enter your query directly.")
-        elif query.strip().lower() in ['regenerate', 'r']:
-            regenerate_assistant_response()
-        elif query.strip().lower() in ['save', 's']:
-            save_session()
-        elif query.strip():  # avoid processing empty queries
-            process_user_input(query) # initial query
-        elif query.strip().lower() in ['execute', 'x']: # Making execution more discoverable
-            # Find code fragment (if any) to execute from the *last* assistant response
-            assistant_events = [se for se in reversed(session.events) if event_source_role(se.body) == "assistant"] # Check body role
-            if not assistant_events:
-                print("No assistant messages found in history.")
-                continue
-            last_assistant_msg = assistant_events[0] # should be the most recent
-            code_fragments = [se.body for se in assistant_events if isinstance(se.body, CodeFragment)] # Extract CodeFragment bodies from SessionEvents
-            if not code_fragments:
-                print("No code to execute in the last assistant response.")
-                continue
-
-            # Ask for execution permission
-            response = input("\nExecute code from last assistant response? [y/N] ").strip().lower()
-            if response != 'y':
-                print("Execution skipped")
-                continue
-
-            # Execute the code (we can reuse the execution logic from process_user_input)
-            code_to_execute = code_fragments[0].code # just take the first one for now
-            result = executor.execute(code_to_execute)
-            result_event_body = ExecutionResult(formatter.format_result(result).output)
-            result_session_event = SessionEvent(event_id=str(uuid.uuid4()), body=result_event_body) # Generate event ID for result
-            session.events.append(result_session_event)
-    except KeyboardInterrupt:
-            print("\nExiting...")
-            break
-
-# %%
-# %pwd
-
-# %%
-import requests
+    query = input("\nEnter query ('help' for commands, Ctrl+C to exit): ")
+    if query.strip().lower() == 'help':
+        print("\nAvailable commands:")
+        print("- 'help': Show this help message")
+        print("- 'regenerate' or 'r': Regenerate assistant's last response")
+        print("- 'save' or 's': Save the current session")
+        print("- 'execute' or 'x': Execute code from the last assistant response (if any)") # More discoverable
+        print("- Ctrl+C: Exit interactive mode")
+        print("\nFor other input, enter your query directly.")
+    elif query.strip().lower() in ['regenerate', 'r']:
+        regenerate_assistant_response()
+    elif query.strip().lower() in ['save', 's']:
+        save_session()
+    else:
+        process_user_input(query)
 
 # %%
