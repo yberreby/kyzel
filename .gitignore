@@ -20,3 +20,12 @@ wheels/
 
 # Unsloth artifacts
 _unsloth*
+
+# llama.cpp clones
+llama.cpp
+
+# files in nb/ are ignored by default unless manually added
+nb/
+
+# run/ is for runtime data
+run/
