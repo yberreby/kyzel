@@ -15,6 +15,10 @@ _kyzel (/ˈkɪzəl/): mispronunciation of "chisel"._
 - Easily **collect private, on-device data** from your interactions with the model.
 - **Locally fine-tune** the model on this data with QLoRA on a single GPU, in minutes.
 
+Thanks to constrained generation, **even off-the-shelf pretrained instruct models can work within `kyzel`**, with a very lightweight system prompt: they are mechnically guaranteed to generate responses in the correct structured output format expected by `kyzel`, and such responses are surprisingly coherent right off the bat.
+
+With QLoRA SFT/RL, and/or a more detailed / model-specific system prompt, it becomes possible to steer the problem-solving and coding style of models with much greater precision.
+
 
 ## Quickstart
 
