@@ -57,6 +57,8 @@ if JUST_TESTING_USE_TERRIBLE_YET_FAST_MODEL:
             "weight_decay": 0.1, # yep.
             "warmup_steps": 10,
             "num_train_epochs": 40,
+            "per_device_train_batch_size": 4,
+            "gradient_accumulation_steps": 1,
         },
         "lora": {
             "rank": 1,
@@ -78,6 +80,8 @@ else:
             "weight_decay": 0.1, # yep.
             "warmup_steps": 10,
             "num_train_epochs": 50,
+            "per_device_train_batch_size": 1,
+            "gradient_accumulation_steps": 1,
         },
         "lora": {
             "rank": 1,
@@ -176,8 +180,6 @@ config_args = {
     "max_seq_length": max_seq_length,
     "dataset_num_proc": 1,
     "logging_steps": 1,
-    "per_device_train_batch_size": 1,
-    "gradient_accumulation_steps": 1,
     "output_dir": "../run/model_training_outputs",
     "fp16": not is_bfloat16_supported(),
     "bf16": is_bfloat16_supported(),
