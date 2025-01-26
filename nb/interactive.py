@@ -55,18 +55,14 @@ def _process_session_events():
     conversation = session_to_chatml(session)
 
     # Send to remote server
-    try:
-        response = requests.post(
-            SERVER_URL,
-            json={
-                "conversation": conversation,
-                "max_new_tokens": max_new_tokens
-            }
-        ).json()
-        raw_response = response["response"]
-    except Exception as e:
-        print(f"Remote generation failed: {e}")
-        return
+    response = requests.post(
+        SERVER_URL,
+        json={
+            "conversation": conversation,
+            "max_new_tokens": max_new_tokens
+        }
+    ).json()
+    raw_response = response["response"]
     # Uncomment for debugging:
     # print("Raw LLM response:", raw_response)
 
@@ -95,11 +91,11 @@ def _process_session_events():
 
     # Execute and add result
     result = executor.execute(code_fragments[0].code)
-    result_session_event = SessionEvent(event_id=str(uuid.uuid4()), body=result) # Directly use the unified ExecutionResult
+    result_session_event = SessionEvent(event_id=str(uuid.uuid4()), body=result)
     session.events.append(result_session_event)
 
     # Final display
-    #clear_output(wait=True) # Let's keep the output for now for better flow.
+    clear_output(wait=True)
     display(session)
 
 
@@ -111,7 +107,7 @@ def process_user_input(query: str):
     # Create and add user message, with a new event ID
     if query:
         msg = HumanMsg(query)
-        session_event = SessionEvent(event_id=str(uuid.uuid4()), body=msg) # Generate event ID
+        session_event = SessionEvent(event_id=str(uuid.uuid4()), body=msg)
         session.events.append(session_event)
     _process_session_events()
 
@@ -129,25 +125,24 @@ def regenerate_assistant_response():
         session_event = session.events[i]
         print(session_event)
         match session_event.body:
-            case AssistantThought() | AssistantAction() | CodeFragment() | ExecutionResult(): # Matching the unified ExecutionResult
-                session.events.pop(i) # pop in place
+            case AssistantThought() | AssistantAction() | CodeFragment() | ExecutionResult():
+                session.events.pop(i)
             case _:
-                regenerate_from_event_id = session_event.event_id # Get event ID from SessionEvent
+                regenerate_from_event_id = session_event.event_id
                 break
         i -= 1
     removed_count = original_len - len(session.events)
     print(f"Removed {removed_count} assistant events for regeneration.")
     input()
 
-    # Add a ResumeFrom.
-    if regenerate_from_event_id: # should always be the case, but for robustness.
+    if regenerate_from_event_id:
         resume_event = ResumeFrom(from_event_id=regenerate_from_event_id)
-        session_event = SessionEvent(event_id=str(uuid.uuid4()), body=resume_event) # Generate event ID for resume event
+        session_event = SessionEvent(event_id=str(uuid.uuid4()), body=resume_event)
         session.events.append(session_event)
 
     # Re-run the processing with the current session history.
     if session.events:
-        _process_session_events() # re-process from the current history
+        _process_session_events()
     else:
         print("No user query found in session to regenerate response for.")
 
