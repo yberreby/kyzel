@@ -5,6 +5,7 @@ from typing import Optional
 from dataclasses import dataclass
 import traceback
 
+
 @dataclass
 class CellOutput:
     """Raw output from cell execution."""
@@ -13,17 +14,17 @@ class CellOutput:
     display_output: str
     result: Optional[object] = None
 
+
+@dataclass
 class ExecutionResult:
-    """Complete result of cell execution with rich error information."""
-    def __init__(self,
-                 output: CellOutput,
-                 success: bool,
-                 error: Optional[Exception] = None,
-                 error_traceback: Optional[str] = None):
-        self.output = output
-        self.success = success
-        self.error = error
-        self.error_traceback = error_traceback
+    """
+    The result of running a code fragment in the REPL.
+    At first, just a string containing the (potentially truncated output)
+    """
+    output: CellOutput
+    success: bool
+    error: Optional[Exception] = None
+    error_traceback: Optional[str] = None
 
 class IPythonExecutor:
     """Raw IPython cell execution with minimal processing."""

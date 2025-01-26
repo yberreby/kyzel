@@ -21,7 +21,9 @@ class LLM:
             max_seq_length=max_seq_length,
             load_in_4bit=True,
         )
-        self.tokenizer = get_chat_template(tokenizer, "phi-4") # CAREFUL wrt mistmatches...
+        self.tokenizer = get_chat_template(
+            tokenizer, "phi-4"
+        )  # CAREFUL wrt mistmatches...
         FastLanguageModel.for_inference(model)
         self.model = model
 
@@ -31,9 +33,7 @@ class LLM:
         Returns raw text (still needs to be parsed).
         """
         inputs = self.tokenizer.apply_chat_template(
-            messages,
-            return_tensors="pt",
-            add_generation_prompt=True
+            messages, return_tensors="pt", add_generation_prompt=True
         ).to("cuda")
 
         n_input = inputs.shape[1]

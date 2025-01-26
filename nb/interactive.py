@@ -29,7 +29,7 @@ from src.preproc import session_to_chatml, event_source_role
 from src.postproc import parse_constrained_message
 from src.run.execute import IPythonExecutor
 from src.run.format import LLMFormatter
-from src.types import Session, HumanMsg, ExecutionResult, CodeFragment, ResumeFrom, SessionEvent, AssistantThought, AssistantAction
+from src.types import Session, HumanMsg, ExecutionResult, CodeFragment, ResumeFrom, SessionEvent, AssistantThought, AssistantAction, ExecutionResult
 import uuid # Import uuid for generating event IDs
 
 
@@ -86,8 +86,7 @@ def _process_session_events():
 
     # Execute and add result
     result = executor.execute(code_fragments[0].code)
-    result_event_body = ExecutionResult(formatter.format_result(result).output)
-    result_session_event = SessionEvent(event_id=str(uuid.uuid4()), body=result_event_body)
+    result_session_event = SessionEvent(event_id=str(uuid.uuid4()), body=result) # Directly use the unified ExecutionResult
     session.events.append(result_session_event)
 
     # Final display
@@ -121,7 +120,7 @@ def regenerate_assistant_response():
         session_event = session.events[i]
         print(session_event)
         match session_event.body:
-            case AssistantThought() | AssistantAction() | CodeFragment() | ExecutionResult():
+            case AssistantThought() | AssistantAction() | CodeFragment() | ExecutionResult(): # Matching the unified ExecutionResult
                 session.events.pop(i) # pop in place
             case _:
                 regenerate_from_event_id = session_event.event_id # Get event ID from SessionEvent
@@ -177,5 +176,8 @@ while True:
         save_session()
     else:
         process_user_input(query)
+
+# %%
+session.events
 
 # %%

@@ -2,7 +2,7 @@ from enum import Enum, auto
 from transformers import LogitsProcessor
 from torch import Tensor, FloatTensor
 import logging
-from typing import List, Dict, Tuple, Optional
+from typing import List, Tuple, Optional
 
 from .logit_utils import force_token
 

@@ -4,7 +4,7 @@ Parsing/loading an entire session.
 
 from typing import List
 import xml.etree.ElementTree as ET
-from src.types import Session, SessionEvent # Import SessionEvent
+from src.types import Session, SessionEvent  # Import SessionEvent
 from .event import event_from_xml
 
 
@@ -17,7 +17,7 @@ def from_str(xml_str: str) -> Session:
 
     events: List[SessionEvent] = []
     for xml_event in xml_events:
-        session_event = event_from_xml(xml_event) # Now returns SessionEvent
+        session_event = event_from_xml(xml_event)  # Now returns SessionEvent
         events.append(session_event)
     return Session(events=events)
 

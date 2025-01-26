@@ -1,8 +1,4 @@
-"""
-Clean and carefully written XML -> Python ingestion routines.
-
-For individual events.
-"""
+"""XML -> Python ingestion routines for individual events."""
 
 from xml.etree.ElementTree import Element as XmlElement
 from src.types import (
@@ -13,27 +9,28 @@ from src.types import (
     CodeFragment,
     ExecutionResult,
     EventBody,
-    ResumeFrom, # Import ResumeFrom
-    SessionEvent, # Import SessionEvent
+    ResumeFrom,
+    SessionEvent,
 )
-import uuid # for generating event_ids if missing in XML
+import uuid
+from src.run.execute import (
+    CellOutput,
+)  # Import CellOutput for consistency with unified ExecutionResult
 
 
 def normalized_text(el: XmlElement) -> str:
-    # Removing leading and trailing newlines.
-    # EXCEPT for code output, they are essentially devoid of meaning.
-    # With low-data training, this is an unnecessary potential source of inconsistency.
+    """Normalize text content from XML element."""
     if not el.text:
-        return "" # Allow empty text for robustness (e.g., empty <result></result>)
-
+        return ""
     return el.text.strip()
 
 
-def msg_from_xml(el: XmlElement) -> SessionEvent: # Returns SessionEvent now
+def msg_from_xml(el: XmlElement) -> SessionEvent:
+    """Load msg event from XML."""
     assert el.tag == "msg"
     sender = el.get("from")
     content = normalized_text(el)
-    event_id_str = el.get("id") # load event_id
+    event_id_str = el.get("id")
 
     body: EventBody
     match sender:
@@ -44,61 +41,70 @@ def msg_from_xml(el: XmlElement) -> SessionEvent: # Returns SessionEvent now
         case _:
             raise ValueError(f"unknown sender {sender} for <msg>")
 
-    event_id = event_id_str or str(uuid.uuid4()) # Generate if missing
-    return SessionEvent(event_id=event_id, body=body) # Wrap in SessionEvent
+    event_id = event_id_str or str(uuid.uuid4())
+    return SessionEvent(event_id=event_id, body=body)
 
 
-def thought_from_xml(el: XmlElement) -> SessionEvent: # Returns SessionEvent now
+def thought_from_xml(el: XmlElement) -> SessionEvent:
+    """Load thought event from XML."""
     assert el.tag == "thought"
     text = normalized_text(el)
-    event_id_str = el.get("id") # load event_id
+    event_id_str = el.get("id")
     body = AssistantThought(text=text)
-    event_id = event_id_str or str(uuid.uuid4()) # Generate if missing
-    return SessionEvent(event_id=event_id, body=body) # Wrap in SessionEvent
+    event_id = event_id_str or str(uuid.uuid4())
+    return SessionEvent(event_id=event_id, body=body)
 
 
-def code_from_xml(el: XmlElement) -> SessionEvent: # Returns SessionEvent now
+def code_from_xml(el: XmlElement) -> SessionEvent:
+    """Load code event from XML."""
     assert el.tag == "code"
-    python_src = el.text # No normalization for code
-    event_id_str = el.get("id") # load event_id
+    python_src = el.text
+    event_id_str = el.get("id")
     body = CodeFragment(code=python_src)
-    event_id = event_id_str or str(uuid.uuid4()) # Generate if missing
-    return SessionEvent(event_id=event_id, body=body) # Wrap in SessionEvent
+    event_id = event_id_str or str(uuid.uuid4())
+    return SessionEvent(event_id=event_id, body=body)
 
 
-def exec_result_from_xml(el: XmlElement) -> SessionEvent: # Returns SessionEvent now
+def exec_result_from_xml(el: XmlElement) -> SessionEvent:
+    """Load execution result event from XML."""
     assert el.tag == "result"
-    output = el.text if el.text is not None else "" # No normalization for result
-    event_id_str = el.get("id") # load event_id
-    body = ExecutionResult(output=output)
-    event_id = event_id_str or str(uuid.uuid4()) # Generate if missing
-    return SessionEvent(event_id=event_id, body=body) # Wrap in SessionEvent
+    # For simplicity, when loading from XML, we will only store the output string in CellOutput.stdout
+    output_str = el.text if el.text is not None else ""
+    cell_output = CellOutput(
+        stdout=output_str, stderr="", display_output="", result=None
+    )  # Create CellOutput
+    body = ExecutionResult(
+        output=cell_output, success=True
+    )  # Use unified ExecutionResult, default to success=True when loading from XML
+    event_id_str = el.get("id")
+    event_id = event_id_str or str(uuid.uuid4())
+    return SessionEvent(event_id=event_id, body=body)
 
 
-def action_from_xml(el: XmlElement) -> SessionEvent: # Returns SessionEvent now
+def action_from_xml(el: XmlElement) -> SessionEvent:
+    """Load action event from XML."""
     assert el.tag == "action"
     text = normalized_text(el)
-    event_id_str = el.get("id") # load event_id
+    event_id_str = el.get("id")
     body = AssistantAction(text=text)
-    event_id = event_id_str or str(uuid.uuid4()) # Generate if missing
-    return SessionEvent(event_id=event_id, body=body) # Wrap in SessionEvent
+    event_id = event_id_str or str(uuid.uuid4())
+    return SessionEvent(event_id=event_id, body=body)
 
 
-def resume_from_event_from_xml(el: XmlElement) -> SessionEvent: # Returns SessionEvent
+def resume_from_event_from_xml(el: XmlElement) -> SessionEvent:
+    """Load resume_from event from XML."""
     assert el.tag == "resume_from"
     from_event_id = el.get("from_event_id")
     if not from_event_id:
         raise ValueError("<resume_from> must have 'from_event_id' attribute")
-    event_id_str = el.get("id") # load event_id
+    event_id_str = el.get("id")
     body = ResumeFrom(from_event_id=from_event_id)
-    event_id = event_id_str or str(uuid.uuid4()) # Generate if missing
+    event_id = event_id_str or str(uuid.uuid4())
     return SessionEvent(event_id=event_id, body=body)
 
 
-def event_from_xml(el: XmlElement) -> SessionEvent: # Returns SessionEvent now
-    """
-    Convert the parsed XML representing a single event, such as '<msg>...</msg>', into the corresponding Python type.
-    """
+def event_from_xml(el: XmlElement) -> SessionEvent:
+    """Convert XML event element to SessionEvent."""
     match el.tag:
         case "msg":
             return msg_from_xml(el)
@@ -111,6 +117,6 @@ def event_from_xml(el: XmlElement) -> SessionEvent: # Returns SessionEvent now
         case "action":
             return action_from_xml(el)
         case "resume_from":
-            return resume_from_event_from_xml(el) # Handle ResumeFrom
+            return resume_from_event_from_xml(el)
         case _:
             raise ValueError(f"unknown event XML tag: '{el.tag}")

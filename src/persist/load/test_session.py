@@ -31,14 +31,14 @@ print(df.head())</code>
 
     # Correct event number and types.
     assert len(events) == 5
-    assert isinstance(events[0], HumanMsg)
-    assert isinstance(events[1], AssistantThought)
-    assert isinstance(events[2], CodeFragment)
-    assert isinstance(events[3], ExecutionResult)
-    assert isinstance(events[4], AssistantMsg)
+    assert isinstance(events[0].body, HumanMsg)
+    assert isinstance(events[1].body, AssistantThought)
+    assert isinstance(events[2].body, CodeFragment)
+    assert isinstance(events[3].body, ExecutionResult)
+    assert isinstance(events[4].body, AssistantMsg)
 
     # No leading newline.
-    assert events[2].code.startswith("import pandas")
-    assert "df.head()" in events[2].code
+    assert events[2].body.code.startswith("import pandas")
+    assert "df.head()" in events[2].body.code
     # Inner whitespace preserved.
-    assert "A  B  C" in events[3].output
+    assert "A  B  C" in events[3].body.output.stdout

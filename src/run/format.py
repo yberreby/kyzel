@@ -1,7 +1,7 @@
 import re
 from typing import Optional
 from dataclasses import dataclass
-from .execute import ExecutionResult
+from .execute import ExecutionResult  # Using the unified ExecutionResult
 
 @dataclass
 class LLMExecutionResult:
@@ -25,18 +25,21 @@ class LLMFormatter:
         return text + '\n' if text else ''
 
     @classmethod
-    def format_result(cls, result: ExecutionResult) -> LLMExecutionResult:
+    def format_result(cls, result: ExecutionResult) -> LLMExecutionResult: # Using the unified ExecutionResult
+        """Convert raw execution result to LLM-friendly format."""
         outputs = []
 
+        # Add stdout if present
+        if result.output.stdout:
+            outputs.append(cls.clean_text(result.output.stdout))
+
+        # Add display output if present
         if result.output.display_output:
             outputs.append(cls.clean_text(result.output.display_output))
-        elif result.output.result is not None:
+
+        # Always add result if it exists - this ensures expression values are included
+        if result.output.result is not None:
             outputs.append(cls.clean_text(repr(result.output.result)))
-        else:
-            if result.output.stdout:
-                outputs.append(cls.clean_text(result.output.stdout))
-            elif result.output.stderr:
-                outputs.append(cls.clean_text(result.output.stderr))
 
         output = ''.join(outputs)
 
