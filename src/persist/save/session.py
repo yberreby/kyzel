@@ -11,10 +11,10 @@ def event_to_xml(event: EventBody) -> ET.Element:
     Converts an EventBody to its XML representation.
     """
     if isinstance(event, HumanMsg):
-        el = ET.Element("msg", from_="user")
+        el = ET.Element("msg", attrib={"from": "user"})
         el.text = event.text
     elif isinstance(event, AssistantMsg):
-        el = ET.Element("msg", from_="assistant")
+        el = ET.Element("msg", attrib={"from": "assistant"})
         el.text = event.text
     elif isinstance(event, AssistantThought):
         el = ET.Element("thought")
