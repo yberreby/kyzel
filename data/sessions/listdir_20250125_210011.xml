@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<session>
+  <events>
+    <msg from="user" id="095de628-6c41-41f4-8c6c-5558ff147655">list files in cwd</msg>
+    <thought id="c257690e-4c48-4f1a-8dd6-8de73d071165">Use `os.listdir()` to list files in the current working directory.</thought>
+    <action id="d15164e2-0682-4f0c-b781-a34af457ec11">Retrieve and display the list of files in the current working directory.</action>
+    <code id="e23db780-8b5b-4374-9c98-d4d56d122430">import os
+
+files = os.listdir('.')
+print(files)
+</code>
+    <result id="a9c8dca6-a677-491c-8938-48e4a71c0d29">['train.ipynb', 'train.py', '.ipynb_checkpoints', 'load_and_display_session.ipynb', 'load_and_display_session.py', 'flatten_to_chatml.ipynb', 'flatten_to_chatml.py', 'constrained_gen.ipynb', 'constrained_gen-finally-in-right-direction.ipynb', 'constrained_gen-finally-in-right-direction.py', 'constrained_gen-v2-WORKING.ipynb', 'constrained_gen-v2-WORKING.py', 'constrained_gen-v3-withcodefence-WORKING.ipynb', 'constrained_gen-v3-withcodefence-WORKING.py', 'constrained_gen-v4-robust-inner-fences.ipynb', 'constrained_gen-v4-robust-inner-fences.py', 'constrained_gen_demo.ipynb', 'constrained_gen_demo.py', 'run', 'train-rl.ipynb', 'train-rl.py', 'output_parsing.ipynb', 'run_code.ipynb', 'run_code.py', 'Untitled.py', 'Untitled.ipynb', 'interactive.ipynb', 'interactive.py', 'test_session.xml', 'xml_to_dataset.ipynb', 'data', 'xml_to_dataset.py']
+</result>
+    <msg from="user" id="0001f936-098c-4e08-8292-3bb9ff4b69af">what do you make of it?</msg>
+    <thought id="bf5911bb-46e8-4ac8-ac58-d2dc4c76dc74">Identify and categorize the files in the current working directory.</thought>
+    <action id="7d6e8497-966f-41f7-a341-0364ce25230b">Classify the files into different types based on their extensions and names.</action>
+    <code id="352a245b-2cd7-4252-a20f-47b3f4be0547">import os
+
+files = os.listdir('.')
+notebooks = [f for f in files if f.endswith('.ipynb')]
+python_files = [f for f in files if f.endswith('.py')]
+other_files = [f for f in files if not f.endswith(('.ipynb', '.py'))]
+checkpoints = [f for f in files if f.startswith('.ipynb_checkpoints')]
+
+print(&quot;Jupyter Notebooks:&quot;, notebooks)
+print(&quot;Python Files:&quot;, python_files)
+print(&quot;Other Files:&quot;, other_files)
+print(&quot;Checkpoints:&quot;, checkpoints)
+</code>
+    <result id="2f2277cc-477a-402a-8531-392515265729">Jupyter Notebooks: ['train.ipynb', 'load_and_display_session.ipynb', 'flatten_to_chatml.ipynb', 'constrained_gen.ipynb', 'constrained_gen-finally-in-right-direction.ipynb', 'constrained_gen-v2-WORKING.ipynb', 'constrained_gen-v3-withcodefence-WORKING.ipynb', 'constrained_gen-v4-robust-inner-fences.ipynb', 'constrained_gen_demo.ipynb', 'train-rl.ipynb', 'output_parsing.ipynb', 'run_code.ipynb', 'Untitled.ipynb', 'interactive.ipynb', 'xml_to_dataset.ipynb']
+Python Files: ['train.py', 'load_and_display_session.py', 'flatten_to_chatml.py', 'constrained_gen-finally-in-right-direction.py', 'constrained_gen-v2-WORKING.py', 'constrained_gen-v3-withcodefence-WORKING.py', 'constrained_gen-v4-robust-inner-fences.py', 'constrained_gen_demo.py', 'train-rl.py', 'run_code.py', 'Untitled.py', 'interactive.py', 'xml_to_dataset.py']
+Other Files: ['.ipynb_checkpoints', 'run', 'test_session.xml', 'data']
+Checkpoints: ['.ipynb_checkpoints']
+</result>
+  </events>
+</session>
