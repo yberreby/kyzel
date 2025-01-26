@@ -35,7 +35,7 @@ import uuid # Import uuid for generating event IDs
 
 # %%
 max_seq_length = 16000
-max_new_tokens = 2048
+max_new_tokens = max_seq_length
 
 # %%
 llm = LLM(
