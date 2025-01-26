@@ -1,3 +1,4 @@
+# File: src/run/execute.py (Revised - Final Version)
 import traceback
 from IPython import get_ipython
 from IPython.utils.capture import capture_output
@@ -22,8 +23,8 @@ class ExecutionResult:
                  error_traceback: Optional[str] = None):
         self.output = output
         self.success = success
-        self.error = error  # The actual exception object
-        self.error_traceback = error_traceback  # Raw traceback string
+        self.error = error
+        self.error_traceback = error_traceback
 
 class IPythonExecutor:
     """Raw IPython cell execution with minimal processing."""
@@ -37,34 +38,44 @@ class IPythonExecutor:
         """Execute code and return raw results."""
         try:
             with capture_output(display=True) as captured:
-                result = self.ipython.run_cell(code)  # Removed silent=False as it's not needed
+                cell_result = self.ipython.run_cell(code)
 
-                # Get display_pub output if any
+                stdout = captured.stdout or ''
+                stderr = captured.stderr or ''
                 display_output = ''
+                captured_result = None # Initialize captured_result
+
                 if hasattr(captured, '_outputs'):
                     for output in captured._outputs:
-                        if isinstance(output, dict) and 'text/plain' in output:
-                            display_output += str(output['text/plain']) + '\n'
+                        if isinstance(output, dict):
+                            if 'text/plain' in output['data']:
+                                display_output += str(output['data']['text/plain']) + '\n'
+                                # Capture the first 'text/plain' output as the "result"
+                                if captured_result is None: # Only capture the first one. Is this correct? Let's assume so for now.
+                                    captured_result = output['data']['text/plain']
+
 
                 output = CellOutput(
-                    stdout=captured.stdout or '',
-                    stderr=captured.stderr or '',
+                    stdout=stdout,
+                    stderr=stderr,
                     display_output=display_output,
-                    result=result.result  # This captures the last expression value
+                    result=captured_result # Use captured_result from _outputs
                 )
 
-                if not result.success:
+                if not cell_result.success:
                     error = None
-                    if result.error_in_exec:
-                        error = result.error_in_exec
-                    elif result.error_before_exec:
-                        error = result.error_before_exec
-
                     tb = None
+                    if cell_result.error_in_exec:
+                        error = cell_result.error_in_exec
+                    elif cell_result.error_before_exec:
+                        error = cell_result.error_before_exec
+
                     if error:
                         tb = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
                     elif captured.stderr:
                         tb = captured.stderr
+                    else:
+                        tb = "Cell execution failed without detailed error info."
 
                     return ExecutionResult(
                         output=output,

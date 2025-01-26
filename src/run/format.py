@@ -1,3 +1,4 @@
+# File: src/run/format.py (Revised - Final Version - same as Attempt 1)
 import re
 from typing import Optional
 from dataclasses import dataclass
@@ -18,42 +19,43 @@ class LLMFormatter:
         """Clean and normalize text output."""
         if not text:
             return ''
-        # Remove ANSI color codes
-        text = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', text)
-        text = re.sub(r'\x1b\][0-9;]*[a-zA-Z]', '', text)
-        # Normalize line endings
+        text = re.sub(r'\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', text)
         text = text.replace('\r\n', '\n').replace('\r', '\n')
-        # Remove trailing whitespace while preserving empty lines
-        text = '\n'.join(line.rstrip() for line in text.splitlines())
-        return text.rstrip() + '\n' if text else ''
+        text_lines = [line.rstrip() for line in text.splitlines()]
+        text = '\n'.join(text_lines).rstrip()
+        return text + '\n' if text else ''
 
     @classmethod
     def format_result(cls, result: ExecutionResult) -> LLMExecutionResult:
-        """Convert raw execution result to LLM-friendly format."""
         outputs = []
 
-        # Add stdout if present
-        if result.output.stdout:
-            outputs.append(cls.clean_text(result.output.stdout))
-
-        # Add display output if present
         if result.output.display_output:
             outputs.append(cls.clean_text(result.output.display_output))
-
-        # Always add result if it exists - this ensures expression values are included
-        if result.output.result is not None:
+        elif result.output.result is not None:
             outputs.append(cls.clean_text(repr(result.output.result)))
+        else:
+            if result.output.stdout:
+                outputs.append(cls.clean_text(result.output.stdout))
+            elif result.output.stderr:
+                outputs.append(cls.clean_text(result.output.stderr))
 
         output = ''.join(outputs)
 
         error = None
         if not result.success:
-            if result.error:
+            if result.error_traceback:
+                error = cls.clean_text(result.error_traceback)
+                if result.error:
+                    error_type = type(result.error).__name__
+                    error_msg = str(result.error)
+                    if error.strip():
+                        error = f"{error_type}: {error_msg}\n{error}"
+                    else:
+                        error = f"{error_type}: {error_msg}\n"
+            elif result.error:
                 error_type = type(result.error).__name__
                 error_msg = str(result.error)
                 error = f"{error_type}: {error_msg}\n"
-                if result.error_traceback:
-                    error = cls.clean_text(result.error_traceback)
             elif result.error_traceback:
                 error = cls.clean_text(result.error_traceback)
 
