@@ -29,3 +29,6 @@ nb/
 
 # run/ is for runtime data
 run/
+
+# Log files
+*.log

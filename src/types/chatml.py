@@ -2,7 +2,10 @@
 ChatML-specific types.
 """
 
-from typing import Literal, TypedDict
+from typing import Literal
+
+# Backport.
+from typing_extensions import TypedDict
 
 # Restrictive type. Most of the time, no system messages in sight.
 NormalRole = Literal["user", "assistant"]
