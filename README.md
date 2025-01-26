@@ -2,7 +2,7 @@
 
 _kyzel (/ˈkɪzəl/): mispronunciation of "chisel"._
 
-**Hook a pretrained SoTA LLM running on **your hardware** to your IPython REPL**.
+**Hook a pretrained SoTA LLM running on your hardware to your IPython REPL, and let it learn from you.**
 
 ![demo](./docs/demo.png)
 
