@@ -127,7 +127,7 @@ This formatting strategy is not a radical idea. Consider **CodeAct** by Apple AI
 ### Why not just use a cloud model?
 
 - Your data leaves your machine - no-go for many usecases.
-- Can get expensive quickly (though).
+- Can get expensive quickly.
 - Can't fully customize the grammar.
 - Often, cannot fine-tune, or have to do so through an idiosyncratic proprietary API.
 
