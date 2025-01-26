@@ -58,7 +58,7 @@ def load_sessions_and_format(session_dir):
             formatted_text = tokenizer.apply_chat_template(
                 conversation, tokenize = False, add_generation_prompt = False
             )
-            dataset_list.append({"conversations": conversation, "text": formatted_text}) # Store both for potential inspection
+            dataset_list.append({"file": session_path, "conversations": conversation, "text": formatted_text}) # Store both for potential inspection
         except Exception as e:
             print(f"Error processing session file: {session_file}. Error: {e}")
             continue # Skip to the next file in case of error
