@@ -1,3 +1,4 @@
+<!-- Fully hand-written, gold-standard example -->
 <session>
 <events>
 <msg from="user">

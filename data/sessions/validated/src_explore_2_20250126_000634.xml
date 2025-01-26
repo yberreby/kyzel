@@ -1,9 +1,14 @@
 <?xml version="1.0" ?>
+<!-- Based on a real transcript, with some rewriting of thoughts and actions. -->
 <session>
   <events>
     <msg from="user" id="616d605a-3eaf-494d-bc94-dd9a447e38ac">alright, let's explore your source. it's in ../src; can you make sure that you're able to import src and its submodules, then walk through the module tree's function signatures/type definitions (careful with imports/reexports)?</msg>
-    <thought id="dc373cdf-4c06-4525-9681-407f41a9e0c9">Check if the `src` directory and its submodules can be imported.</thought>
-    <action id="441df3bf-4b5e-4531-85e7-8691a18ab27b">Import the `src` module and its submodules.</action>
+    <thought id="dc373cdf-4c06-4525-9681-407f41a9e0c9">This is a multi-step task with clear steps:
+1. imports
+2. signatures and type definitions
+
+Let's start with step 1: importing the `src` module tree. We'll do the walk through signatures and type definitions afterward.</thought>
+    <action id="441df3bf-4b5e-4531-85e7-8691a18ab27b">Importing the `src` module and its submodules using `sys.path`, standard imports and `importlib`.</action>
     <code id="5d6f86c5-f99e-46b0-b816-14d47ffc5bc4">import sys
 import os
 import importlib
@@ -57,8 +62,8 @@ Error importing src.format: No module named 'src.format'
 Error importing src.execute: No module named 'src.execute'
 Imported submodules: [&lt;module 'src.chatml' (&lt;_frozen_importlib_external.NamespaceLoader object at 0x79b6b8184cd0&gt;)&gt;, &lt;module 'src.session' (&lt;_frozen_importlib_external.NamespaceLoader object at 0x79b6821083d0&gt;)&gt;, &lt;module 'src.session' (&lt;_frozen_importlib_external.NamespaceLoader object at 0x79b6821083d0&gt;)&gt;, &lt;module 'src.chatml' (&lt;_frozen_importlib_external.NamespaceLoader object at 0x79b6b8184cd0&gt;)&gt;, &lt;module 'src.session' (&lt;_frozen_importlib_external.NamespaceLoader object at 0x79b6821083d0&gt;)&gt;]
 </result>
-    <thought id="ce9f5675-b998-456b-8a54-451fee79b5f6">Some submodules failed to import. Let's inspect the `src` directory structure and contents.</thought>
-    <action id="1ce00c5b-544a-4ec6-9b86-16a6df21f906">Inspect the `src` directory structure and contents.</action>
+    <thought id="ce9f5675-b998-456b-8a54-451fee79b5f6">Some submodules failed to import. We should inspect the `src` directory structure and contents to understand why.</thought>
+    <action id="1ce00c5b-544a-4ec6-9b86-16a6df21f906">Print the `src` directory tree using `os.walk`.</action>
     <code id="b02623f7-5f4c-4f31-8703-e0e158fa988f">import os
 
 src_path = os.path.abspath('../src')
@@ -252,8 +257,8 @@ Successfully imported src.run.format
 Successfully imported src.run.execute
 Imported submodules: [&lt;module 'src.display.html.session.css' from '/home/yberreby/projects/kyzel/src/display/html/session/css.py'&gt;, &lt;module 'src.display.html.session.highlight' from '/home/yberreby/projects/kyzel/src/display/html/session/highlight.py'&gt;, &lt;module 'src.display.html.session.md' from '/home/yberreby/projects/kyzel/src/display/html/session/md.py'&gt;, &lt;module 'src.display.text.chatml' from '/home/yberreby/projects/kyzel/src/display/text/chatml.py'&gt;, &lt;module 'src.persist.load.session' from '/home/yberreby/projects/kyzel/src/persist/load/session.py'&gt;, &lt;module 'src.persist.load.test_session' from '/home/yberreby/projects/kyzel/src/persist/load/test_session.py'&gt;, &lt;module 'src.persist.load.event' from '/home/yberreby/projects/kyzel/src/persist/load/event.py'&gt;, &lt;module 'src.persist.save.session' from '/home/yberreby/projects/kyzel/src/persist/save/session.py'&gt;, &lt;module 'src.postproc..ipynb_checkpoints.__init__-checkpoint' from '/home/yberreby/projects/kyzel/src/postproc/.ipynb_checkpoints/__init__-checkpoint.py'&gt;, &lt;module 'src.preproc..ipynb_checkpoints.__init__-checkpoint' from '/home/yberreby/projects/kyzel/src/preproc/.ipynb_checkpoints/__init__-checkpoint.py'&gt;, &lt;module 'src.types.chatml' from '/home/yberreby/projects/kyzel/src/types/chatml.py'&gt;, &lt;module 'src.types.events' from '/home/yberreby/projects/kyzel/src/types/events.py'&gt;, &lt;module 'src.types.session' from '/home/yberreby/projects/kyzel/src/types/session.py'&gt;, &lt;module 'src.generate.llm' from '/home/yberreby/projects/kyzel/src/generate/llm.py'&gt;, &lt;module 'src.generate.constrain.logit_utils' from '/home/yberreby/projects/kyzel/src/generate/constrain/logit_utils.py'&gt;, &lt;module 'src.run.format' from '/home/yberreby/projects/kyzel/src/run/format.py'&gt;, &lt;module 'src.run.execute' from '/home/yberreby/projects/kyzel/src/run/execute.py'&gt;]
 </result>
-    <thought id="54e8931b-917d-4c48-9830-fe65dbf1f0fe">Successfully imported more submodules using their full paths.</thought>
-    <action id="131d23f3-5247-4e6a-aa1b-0f7e01d1c30b">Display the function signatures and type definitions of the imported submodules.</action>
+    <thought id="54e8931b-917d-4c48-9830-fe65dbf1f0fe">Successfully imported more submodules using their full paths. We can now move on to step 2: function signatures and type definitions.</thought>
+    <action id="131d23f3-5247-4e6a-aa1b-0f7e01d1c30b">Display the function signatures and type definitions within the imported submodules.</action>
     <code id="b76613e0-1433-4654-b6d3-d20a93b436d4">import inspect
 import types
 
