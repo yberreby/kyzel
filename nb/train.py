@@ -90,7 +90,7 @@ from pathlib import Path
 ROOT = Path("..")
 RUN_DIR = ROOT / "run" / short_model_name
 DATA_DIR = ROOT / "data"
-SESSION_DIR = DATA_DIR / "sessions"
+SESSION_DIR = DATA_DIR / "sessions" / "validated"
 OUTPUT_DATASET_PATH = RUN_DIR / "hf_dataset"
 LORA_OUTPUT_PATH = RUN_DIR / "lora"
 
