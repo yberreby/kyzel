@@ -34,6 +34,7 @@ from src.types import Session, HumanMsg, ExecutionResult, CodeFragment, ResumeFr
 
 
 # %%
+# Start an inference server with the `src.server` module.
 SERVER_URL = "http://127.0.0.1:8000/generate"
 
 # %%
@@ -47,6 +48,8 @@ executor = IPythonExecutor()
 formatter = LLMFormatter()
 session = Session(events=[])
 
+
+# The following is not the greatest code; does the job for now.
 
 def _process_session_events():
     global session

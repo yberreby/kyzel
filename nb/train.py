@@ -14,7 +14,7 @@
 # ---
 
 # %% [markdown]
-# # Kyzel Model Training
+# # Fine-tuning on session data
 
 # %%
 # %load_ext autoreload
@@ -23,6 +23,7 @@
 import sys
 sys.path.append('..')
 
+from warnings import warn
 from unsloth import FastLanguageModel, is_bfloat16_supported
 from unsloth.chat_templates import get_chat_template, train_on_responses_only
 from datasets import load_from_disk
@@ -34,13 +35,73 @@ from trl import SFTTrainer, SFTConfig
 from transformers import DataCollatorForSeq2Seq
 
 # %% [markdown]
-# ## Model Setup
+# ## Setup
 
 # %%
+# Change this to get good results at the price of speed.
+JUST_TESTING_USE_TERRIBLE_YET_FAST_MODEL = True
+
+if JUST_TESTING_USE_TERRIBLE_YET_FAST_MODEL:
+    warn("Will use a tiny model for speed - do not expect intelligence!")
+    model_name = "unsloth/Qwen2.5-Coder-0.5B-Instruct-bnb-4bit"
+
+    # Qwen-2.5 should support up to 128k, but this is just for quick testing.
+    max_seq_length = 4096
+    
+    short_model_name = "qwen-2.5-coder-0.5b"
+    chat_template = "qwen-2.5"
+
+    core_training_args = {
+        "sft": {
+            "learning_rate": 1e-4,
+            "weight_decay": 0.1, # yep.
+            "warmup_steps": 10,
+            "num_train_epochs": 20,
+        },
+        "lora": {
+            "rank": 1,
+            "alpha": 2,
+        }
+    }
+else:
+    model_name = "unsloth/Phi-4"
+
+    # Immediately meaningful up to 16k for Phi4.
+    max_seq_length = 16000
+    
+    short_model_name = "phi4"
+    chat_template = "phi-4"
+
+    core_training_args = {
+        "sft": {
+            "learning_rate": 1e-4,
+            "weight_decay": 0.1, # yep.
+            "warmup_steps": 10,
+            "num_train_epochs": 50,
+        },
+        "lora": {
+            "rank": 1,
+            "alpha": 2,
+        }
+    }
+
+# %%
+from pathlib import Path
+ROOT = Path("..")
+RUN_DIR = ROOT / "run" / short_model_name
+DATA_DIR = ROOT / "data"
+SESSION_DIR = DATA_DIR / "sessions"
+OUTPUT_DATASET_PATH = RUN_DIR / "hf_dataset"
+LORA_OUTPUT_PATH = RUN_DIR / "lora"
+
+RUN_DIR.mkdir(exist_ok=True)
+
+# %%
+# %%time
+
 # Initialize model and tokenizer
-max_seq_length = 4096
 model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name="unsloth/Phi-4",
+    model_name=model_name,
     max_seq_length=max_seq_length,
     load_in_4bit=True,
 )
@@ -48,52 +109,33 @@ model, tokenizer = FastLanguageModel.from_pretrained(
 # Add LoRA
 model = FastLanguageModel.get_peft_model(
     model,
-    r=1,
+    r=core_training_args["lora"]["rank"],
     target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
                    "gate_proj", "up_proj", "down_proj",],
-    lora_alpha=2,
-    lora_dropout=0,
+    lora_alpha=core_training_args["lora"]["alpha"],
+    lora_dropout=0, # 0 = fast path
     bias="none",
     use_gradient_checkpointing="unsloth",
     random_state=3407,
 )
 
-# Setup tokenizer with phi-4 chat template
-tokenizer = get_chat_template(tokenizer, chat_template="phi-4")
+# See https://github.com/unslothai/unsloth/blob/main/unsloth/chat_templates.py
+tokenizer = get_chat_template(tokenizer, chat_template=chat_template)
+
+# %%
+# XML -> HF Dataset
+from src.train.to_dataset import sessions_to_hf_dataset
+sessions_to_hf_dataset(tokenizer, session_dir=SESSION_DIR, output_path=OUTPUT_DATASET_PATH)
 
 # %% [markdown]
 # ## Dataset Loading and Analysis
 
 # %%
-# Load dataset
-dataset = load_from_disk("../data/training_sessions_hf")
+dataset = load_from_disk(OUTPUT_DATASET_PATH)
 print(f"Loaded dataset with {len(dataset)} examples")
 
-# Analyze token lengths
-lengths = []
-for sample in tqdm(dataset):
-    tokens = tokenizer(sample["text"], return_tensors="pt", truncation=False)
-    lengths.append(len(tokens.input_ids[0]))
-
-# Visualize distribution
-plt.figure(figsize=(10, 6))
-plt.hist(lengths, bins=50, edgecolor='black')
-plt.title('Distribution of Sample Lengths (in tokens)')
-plt.xlabel('Length in Tokens')
-plt.ylabel('Count')
-
-# Add stats
-stats = f"""
-Mean: {np.mean(lengths):.1f}
-Median: {np.median(lengths):.1f}
-Max: {np.max(lengths)}
-95th %ile: {np.percentile(lengths, 95):.1f}
-"""
-plt.text(0.02, 0.98, stats, transform=plt.gca().transAxes,
-         verticalalignment='top',
-         bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
-plt.grid(True, alpha=0.3)
-plt.show()
+from src.train.utils import plot_token_distribution
+plot_token_distribution(tokenizer, dataset)
 
 # %% [markdown]
 # ## Dataset Splitting
@@ -127,15 +169,12 @@ train_dataset['text'][0][:100]
 # %%
 # Configure training
 config_args = {
-    "learning_rate": 1e-4,
-    "weight_decay": 0.1, # yep.
-    "warmup_steps": 10,
-    "num_train_epochs": 50,
+    **core_training_args["sft"],
     "max_seq_length": max_seq_length,
     "dataset_num_proc": 1,
     "logging_steps": 1,
     "per_device_train_batch_size": 1,
-    "gradient_accumulation_steps": 4,
+    "gradient_accumulation_steps": 1,
     "output_dir": "../run/model_training_outputs",
     "fp16": not is_bfloat16_supported(),
     "bf16": is_bfloat16_supported(),
@@ -149,7 +188,7 @@ config_args = {
 # Add eval config if we have eval data
 if eval_dataset is not None:
     config_args.update({
-        "evaluation_strategy": "steps",
+        "eval_strategy": "steps",
         "eval_steps": 1,
         #"save_strategy": "steps",
         #"save_steps": 5,
@@ -169,10 +208,25 @@ trainer = SFTTrainer(
 )
 
 # Only train on assistant responses
+match chat_template:
+    case "phi-4":
+        # As per https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Phi_4-Conversational.ipynb
+        print("Training on phi-4 responses")
+        toro_kw = dict(
+            instruction_part="<|im_start|>user<|im_sep|>",
+            response_part="<|im_start|>assistant<|im_sep|>",
+        )
+    case "qwen-2.5" | "qwen-25" | "qwen25" | "qwen2.5":
+        # As per https://colab.research.google.com/drive/18sN803sU23XuJV9Q8On2xgqHSer6-UZF?usp=sharing#scrollTo=juQiExuBG5Bt
+        print("Training on Qwen-2.5 responses")
+        toro_kw = dict(
+            instruction_part = "<|im_start|>user\n",
+            response_part = "<|im_start|>assistant\n",
+        )
+
 trainer = train_on_responses_only(
     trainer,
-    instruction_part="<|im_start|>user<|im_sep|>",
-    response_part="<|im_start|>assistant<|im_sep|>",
+    **toro_kw
 )
 
 # %% [markdown]
@@ -195,7 +249,7 @@ print(f"Training time: {trainer_stats.metrics['train_runtime']:.1f} seconds")
 print(f"Peak memory usage: {used_memory} GB (LoRA: {used_memory_for_lora} GB)")
 
 # %%
-model.save_pretrained("../run/ckpt/phi4_lora")
-tokenizer.save_pretrained("../run/ckpt/phi4_lora")
+model.save_pretrained(LORA_OUTPUT_PATH)
+tokenizer.save_pretrained(LORA_OUTPUT_PATH)
 
 # %%
