@@ -55,9 +55,7 @@ def _process_session_events():
     global session
 
     # Convert session to ChatML
-    human_and_assistant_msgs = session_to_chatml(session)
-
-    conversation = [system_msg] + human_and_assistant_msgs
+    conversation = session_to_chatml(session)
 
     raw_response = llm.generate(conversation, max_new_tokens=max_new_tokens)
     # Uncomment for debugging:
