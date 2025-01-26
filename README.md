@@ -4,6 +4,8 @@ _kyzel (/ˈkɪzəl/): mispronunciation of "chisel"._
 
 **Hook a pretrained SoTA LLM running on **your hardware** to your IPython REPL**.
 
+![demo](./docs/demo.png)
+
 - Ask questions and let a local LLM write and run Python code to answer them.
   - **Inference runs on your hardware**: no Internet connectivity required unless you opt-in.
   - **Code runs on your machine, with your environment**: use it to explore a new library, debug a piece of code, etc.
