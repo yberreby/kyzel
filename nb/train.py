@@ -38,25 +38,40 @@ from transformers import DataCollatorForSeq2Seq
 # ## Setup
 
 # %%
+import torch
+from warnings import warn
+
+# Check VRAM availability
+if not torch.cuda.is_available():
+    warn("No CUDA device detected. This code requires a GPU to run.")
+    raise RuntimeError("GPU required")
+
+vram_gb = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+
 # Change this to get good results at the price of speed.
-JUST_TESTING_USE_TERRIBLE_YET_FAST_MODEL = True
+# Set to None to auto-select based on VRAM
+JUST_TESTING_USE_TERRIBLE_YET_FAST_MODEL = None
+
+if JUST_TESTING_USE_TERRIBLE_YET_FAST_MODEL is None:
+    # Auto-select based on VRAM
+    JUST_TESTING_USE_TERRIBLE_YET_FAST_MODEL = vram_gb < 16
+    if JUST_TESTING_USE_TERRIBLE_YET_FAST_MODEL:
+        warn(f"Only {vram_gb:.1f}GB VRAM available - falling back to small model")
 
 if JUST_TESTING_USE_TERRIBLE_YET_FAST_MODEL:
     warn("Will use a tiny model for speed - do not expect intelligence!")
     model_name = "unsloth/Qwen2.5-Coder-0.5B-Instruct-bnb-4bit"
-
     # Qwen-2.5 should support up to 128k
     max_seq_length = 8192
     
     short_model_name = "qwen-2.5-coder-0.5b"
     chat_template = "qwen-2.5"
-
     core_training_args = {
         "sft": {
             "learning_rate": 1e-4,
             "weight_decay": 0.1, # yep.
             "warmup_steps": 10,
-            "num_train_epochs": 40,
+            "num_train_epochs": 20,
             "per_device_train_batch_size": 4,
             "gradient_accumulation_steps": 1,
         },
@@ -67,19 +82,17 @@ if JUST_TESTING_USE_TERRIBLE_YET_FAST_MODEL:
     }
 else:
     model_name = "unsloth/Phi-4"
-
     # Immediately meaningful up to 16k for Phi4.
     max_seq_length = 16000
     
     short_model_name = "phi4"
     chat_template = "phi-4"
-
     core_training_args = {
         "sft": {
-            "learning_rate": 1e-4,
-            "weight_decay": 0.1, # yep.
-            "warmup_steps": 10,
-            "num_train_epochs": 50,
+            "learning_rate": 5e-5,
+            "weight_decay": 1,
+            "warmup_steps": 5,
+            "num_train_epochs": 200,
             "per_device_train_batch_size": 1,
             "gradient_accumulation_steps": 1,
         },
@@ -88,6 +101,9 @@ else:
             "alpha": 2,
         }
     }
+
+# %%
+model_name
 
 # %%
 from pathlib import Path
@@ -148,7 +164,7 @@ plot_token_distribution(tokenizer, dataset)
 # Split if more than 1 sample
 n_samples = len(dataset)
 if n_samples > 1:
-    eval_size = min(max(1, int(0.1 * n_samples)), n_samples - 1)
+    eval_size = min(max(1, int(0.5 * n_samples)), n_samples - 1)
     splits = dataset.train_test_split(test_size=eval_size, seed=53)
     train_dataset = splits['train']
     eval_dataset = splits['test']
@@ -254,7 +270,10 @@ print(f"Training time: {trainer_stats.metrics['train_runtime']:.1f} seconds")
 print(f"Peak memory usage: {used_memory} GB (LoRA: {used_memory_for_lora} GB)")
 
 # %%
-model.save_pretrained(LORA_OUTPUT_PATH)
-tokenizer.save_pretrained(LORA_OUTPUT_PATH)
+# %matplotlib widget
+from src.train.utils import plot_training_loss
+fig, ax, (train_line, eval_line) = plot_training_loss(trainer.state.log_history)
 
 # %%
+model.save_pretrained(LORA_OUTPUT_PATH)
+tokenizer.save_pretrained(LORA_OUTPUT_PATH)
