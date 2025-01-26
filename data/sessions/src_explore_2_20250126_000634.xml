@@ -1,0 +1,598 @@
+<?xml version="1.0" ?>
+<session>
+  <events>
+    <msg from="user" id="616d605a-3eaf-494d-bc94-dd9a447e38ac">alright, let's explore your source. it's in ../src; can you make sure that you're able to import src and its submodules, then walk through the module tree's function signatures/type definitions (careful with imports/reexports)?</msg>
+    <thought id="dc373cdf-4c06-4525-9681-407f41a9e0c9">Check if the `src` directory and its submodules can be imported.</thought>
+    <action id="441df3bf-4b5e-4531-85e7-8691a18ab27b">Import the `src` module and its submodules.</action>
+    <code id="5d6f86c5-f99e-46b0-b816-14d47ffc5bc4">import sys
+import os
+import importlib
+
+# Add the src directory to the system path
+src_path = os.path.abspath('../src')
+if src_path not in sys.path:
+    sys.path.insert(0, src_path)
+
+# Attempt to import the src module and its submodules
+try:
+    import src
+    print(&quot;Successfully imported src module.&quot;)
+except ImportError as e:
+    print(f&quot;Error importing src module: {e}&quot;)
+
+# List all submodules in the src directory
+submodules = []
+for root, dirs, files in os.walk(src_path):
+    for file in files:
+        if file.endswith('.py') and file != '__init__.py':
+            module_name = file[:-3]
+            full_module_name = f'src.{module_name}'
+            try:
+                module = importlib.import_module(full_module_name)
+                submodules.append(module)
+                print(f&quot;Successfully imported {full_module_name}&quot;)
+            except ImportError as e:
+                print(f&quot;Error importing {full_module_name}: {e}&quot;)
+
+# Display the imported submodules
+print(&quot;Imported submodules:&quot;, submodules)
+</code>
+    <result id="d3d594e6-b440-4b0a-808a-4bc982b2f0d4">Successfully imported src module.
+Error importing src.css: No module named 'src.css'
+Error importing src.highlight: No module named 'src.highlight'
+Error importing src.md: No module named 'src.md'
+Successfully imported src.chatml
+Successfully imported src.session
+Error importing src.test_session: No module named 'src.test_session'
+Error importing src.event: No module named 'src.event'
+Successfully imported src.session
+Error importing src.__init__-checkpoint: No module named 'src.__init__-checkpoint'
+Error importing src.__init__-checkpoint: No module named 'src.__init__-checkpoint'
+Successfully imported src.chatml
+Error importing src.events: No module named 'src.events'
+Successfully imported src.session
+Error importing src.llm: No module named 'src.llm'
+Error importing src.logit_utils: No module named 'src.logit_utils'
+Error importing src.format: No module named 'src.format'
+Error importing src.execute: No module named 'src.execute'
+Imported submodules: [&lt;module 'src.chatml' (&lt;_frozen_importlib_external.NamespaceLoader object at 0x79b6b8184cd0&gt;)&gt;, &lt;module 'src.session' (&lt;_frozen_importlib_external.NamespaceLoader object at 0x79b6821083d0&gt;)&gt;, &lt;module 'src.session' (&lt;_frozen_importlib_external.NamespaceLoader object at 0x79b6821083d0&gt;)&gt;, &lt;module 'src.chatml' (&lt;_frozen_importlib_external.NamespaceLoader object at 0x79b6b8184cd0&gt;)&gt;, &lt;module 'src.session' (&lt;_frozen_importlib_external.NamespaceLoader object at 0x79b6821083d0&gt;)&gt;]
+</result>
+    <thought id="ce9f5675-b998-456b-8a54-451fee79b5f6">Some submodules failed to import. Let's inspect the `src` directory structure and contents.</thought>
+    <action id="1ce00c5b-544a-4ec6-9b86-16a6df21f906">Inspect the `src` directory structure and contents.</action>
+    <code id="b02623f7-5f4c-4f31-8703-e0e158fa988f">import os
+
+src_path = os.path.abspath('../src')
+print(f&quot;Source directory: {src_path}&quot;)
+
+# List all files and directories in the src directory
+for root, dirs, files in os.walk(src_path):
+    level = root.replace(src_path, '').count(os.sep)
+    indent = ' ' * 4 * (level)
+    print(f&quot;{indent}{os.path.basename(root)}/&quot;)
+    subindent = ' ' * 4 * (level + 1)
+    for f in files:
+        print(f&quot;{subindent}{f}&quot;)
+</code>
+    <result id="6eb1a796-fa45-4c00-a030-a467b3dccb68">Source directory: /home/yberreby/projects/kyzel/src
+src/
+    __init__.py
+    session/
+        event/
+            __pycache__/
+                __init__.cpython-311.pyc
+                types.cpython-311.pyc
+                from_xml.cpython-311.pyc
+        .ruff_cache/
+            CACHEDIR.TAG
+            .gitignore
+            0.9.2/
+        __pycache__/
+            types.cpython-311.pyc
+            ipy_display.cpython-311.pyc
+            test_parse.cpython-311-pytest-8.3.4.pyc
+            parse.cpython-311.pyc
+            __init__.cpython-311.pyc
+        ipy/
+            __pycache__/
+                css.cpython-311.pyc
+                __init__.cpython-311.pyc
+                md.cpython-311.pyc
+                highlight.cpython-311.pyc
+        tests/
+            __pycache__/
+                __init__.cpython-311.pyc
+                test_parse.cpython-311-pytest-8.3.4.pyc
+        flatten/
+            __pycache__/
+                __init__.cpython-311.pyc
+    train/
+    chatml/
+        __pycache__/
+            types.cpython-311.pyc
+            __init__.cpython-311.pyc
+            print.cpython-311.pyc
+    display/
+        html/
+            __init__.py
+            session/
+                css.py
+                highlight.py
+                md.py
+                __init__.py
+                __pycache__/
+                    md.cpython-311.pyc
+                    highlight.cpython-311.pyc
+                    __init__.cpython-311.pyc
+                    css.cpython-311.pyc
+            __pycache__/
+                __init__.cpython-311.pyc
+        text/
+            __init__.py
+            chatml.py
+            __pycache__/
+                __init__.cpython-311.pyc
+                chatml.cpython-311.pyc
+    persist/
+        __init__.py
+        load/
+            __init__.py
+            session.py
+            test_session.py
+            event.py
+            __pycache__/
+                __init__.cpython-311.pyc
+                session.cpython-311.pyc
+                event.cpython-311.pyc
+                test_session.cpython-311.pyc
+        save/
+            __init__.py
+            session.py
+            __pycache__/
+                __init__.cpython-311.pyc
+                session.cpython-311.pyc
+        __pycache__/
+            __init__.cpython-311.pyc
+    postproc/
+        __init__.py
+        __pycache__/
+            __init__.cpython-311.pyc
+        .ipynb_checkpoints/
+            __init__-checkpoint.py
+    preproc/
+        __init__.py
+        __pycache__/
+            __init__.cpython-311.pyc
+        .ipynb_checkpoints/
+            __init__-checkpoint.py
+    types/
+        chatml.py
+        events.py
+        session.py
+        __init__.py
+        __pycache__/
+            chatml.cpython-311.pyc
+            __init__.cpython-311.pyc
+            session.cpython-311.pyc
+            events.cpython-311.pyc
+    __pycache__/
+        __init__.cpython-311.pyc
+    generate/
+        __init__.py
+        llm.py
+        constrain/
+            logit_utils.py
+            __init__.py
+            __pycache__/
+                logit_utils.cpython-311.pyc
+                __init__.cpython-311.pyc
+        __pycache__/
+            __init__.cpython-311.pyc
+            llm.cpython-311.pyc
+    run/
+        __init__.py
+        format.py
+        execute.py
+        __pycache__/
+            __init__.cpython-311.pyc
+            execute.cpython-311.pyc
+            format.cpython-311.pyc
+</result>
+    <thought id="48713fca-d8d5-4f35-9de8-41f82a69c0e4">Some submodules are in nested directories and may not be directly importable.</thought>
+    <action id="c5a165c1-f704-4282-a765-18233e632291">Attempt to import submodules using their full paths.</action>
+    <code id="d542e68c-26e1-48f1-846f-98bd97f27c84">import importlib.util
+import sys
+import os
+
+src_path = os.path.abspath('../src')
+
+def import_module_from_path(module_name, path):
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    if spec is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(module)
+        return module
+    except Exception as e:
+        print(f&quot;Error importing {module_name} from {path}: {e}&quot;)
+        return None
+
+# List all submodules in the src directory
+submodules = []
+for root, dirs, files in os.walk(src_path):
+    for file in files:
+        if file.endswith('.py') and file != '__init__.py':
+            module_name = file[:-3]
+            full_module_name = f'src.{os.path.relpath(root, src_path).replace(os.sep, &quot;.&quot;)}.{module_name}'
+            full_path = os.path.join(root, file)
+            module = import_module_from_path(full_module_name, full_path)
+            if module:
+                submodules.append(module)
+                print(f&quot;Successfully imported {full_module_name}&quot;)
+
+# Display the imported submodules
+print(&quot;Imported submodules:&quot;, submodules)
+</code>
+    <result id="a1c759b5-5b22-4cf0-85d4-19557c29a695">Successfully imported src.display.html.session.css
+Successfully imported src.display.html.session.highlight
+Successfully imported src.display.html.session.md
+Successfully imported src.display.text.chatml
+Successfully imported src.persist.load.session
+Successfully imported src.persist.load.test_session
+Successfully imported src.persist.load.event
+Successfully imported src.persist.save.session
+Successfully imported src.postproc..ipynb_checkpoints.__init__-checkpoint
+Successfully imported src.preproc..ipynb_checkpoints.__init__-checkpoint
+Successfully imported src.types.chatml
+Successfully imported src.types.events
+Successfully imported src.types.session
+Successfully imported src.generate.llm
+Successfully imported src.generate.constrain.logit_utils
+Successfully imported src.run.format
+Successfully imported src.run.execute
+Imported submodules: [&lt;module 'src.display.html.session.css' from '/home/yberreby/projects/kyzel/src/display/html/session/css.py'&gt;, &lt;module 'src.display.html.session.highlight' from '/home/yberreby/projects/kyzel/src/display/html/session/highlight.py'&gt;, &lt;module 'src.display.html.session.md' from '/home/yberreby/projects/kyzel/src/display/html/session/md.py'&gt;, &lt;module 'src.display.text.chatml' from '/home/yberreby/projects/kyzel/src/display/text/chatml.py'&gt;, &lt;module 'src.persist.load.session' from '/home/yberreby/projects/kyzel/src/persist/load/session.py'&gt;, &lt;module 'src.persist.load.test_session' from '/home/yberreby/projects/kyzel/src/persist/load/test_session.py'&gt;, &lt;module 'src.persist.load.event' from '/home/yberreby/projects/kyzel/src/persist/load/event.py'&gt;, &lt;module 'src.persist.save.session' from '/home/yberreby/projects/kyzel/src/persist/save/session.py'&gt;, &lt;module 'src.postproc..ipynb_checkpoints.__init__-checkpoint' from '/home/yberreby/projects/kyzel/src/postproc/.ipynb_checkpoints/__init__-checkpoint.py'&gt;, &lt;module 'src.preproc..ipynb_checkpoints.__init__-checkpoint' from '/home/yberreby/projects/kyzel/src/preproc/.ipynb_checkpoints/__init__-checkpoint.py'&gt;, &lt;module 'src.types.chatml' from '/home/yberreby/projects/kyzel/src/types/chatml.py'&gt;, &lt;module 'src.types.events' from '/home/yberreby/projects/kyzel/src/types/events.py'&gt;, &lt;module 'src.types.session' from '/home/yberreby/projects/kyzel/src/types/session.py'&gt;, &lt;module 'src.generate.llm' from '/home/yberreby/projects/kyzel/src/generate/llm.py'&gt;, &lt;module 'src.generate.constrain.logit_utils' from '/home/yberreby/projects/kyzel/src/generate/constrain/logit_utils.py'&gt;, &lt;module 'src.run.format' from '/home/yberreby/projects/kyzel/src/run/format.py'&gt;, &lt;module 'src.run.execute' from '/home/yberreby/projects/kyzel/src/run/execute.py'&gt;]
+</result>
+    <thought id="54e8931b-917d-4c48-9830-fe65dbf1f0fe">Successfully imported more submodules using their full paths.</thought>
+    <action id="131d23f3-5247-4e6a-aa1b-0f7e01d1c30b">Display the function signatures and type definitions of the imported submodules.</action>
+    <code id="b76613e0-1433-4654-b6d3-d20a93b436d4">import inspect
+import types
+
+# Display function signatures and type definitions
+for module in submodules:
+    print(f&quot;Module: {module.__name__}&quot;)
+    for name, obj in inspect.getmembers(module):
+        if inspect.isfunction(obj) or inspect.isclass(obj):
+            print(f&quot;  {name}:&quot;)
+            if inspect.isfunction(obj):
+                sig = inspect.signature(obj)
+                print(f&quot;    Signature: {sig}&quot;)
+            if isinstance(obj, type):
+                for cls_name, cls_obj in inspect.getmembers(obj):
+                    if inspect.isdatadescriptor(cls_obj):
+                        print(f&quot;    Type: {cls_name} = {cls_obj}&quot;)
+    print()
+</code>
+    <result id="1e99b733-b74c-4655-9980-7158ec36a8bd">Module: src.display.html.session.css
+  get_base_css:
+    Signature: () -&gt; str
+
+Module: src.display.html.session.highlight
+  HtmlFormatter:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'Formatter' objects&gt;
+    Type: _linenos_special_style = &lt;property object at 0x79b8643bf740&gt;
+    Type: _linenos_style = &lt;property object at 0x79b8643be520&gt;
+    Type: _pre_style = &lt;property object at 0x79b8643bfc90&gt;
+  get_lexer_by_name:
+    Signature: (_alias, **options)
+  get_pygments_css:
+    Signature: () -&gt; str
+  highlight:
+    Signature: (code, lexer, formatter, outfile=None)
+  highlight_code:
+    Signature: (code: str) -&gt; str
+
+Module: src.display.html.session.md
+  format_markdown:
+    Signature: (text: str) -&gt; str
+
+Module: src.display.text.chatml
+  ChatMsg:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'Msg' objects&gt;
+  print_conversation:
+    Signature: (conversation: list[src.types.chatml.Msg])
+  print_msg:
+    Signature: (msg: src.types.chatml.Msg)
+
+Module: src.persist.load.session
+  Session:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'Session' objects&gt;
+  SessionEvent:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'SessionEvent' objects&gt;
+  event_from_xml:
+    Signature: (el: xml.etree.ElementTree.Element) -&gt; src.types.session.SessionEvent
+  from_file:
+    Signature: (path) -&gt; src.types.session.Session
+  from_str:
+    Signature: (xml_str: str) -&gt; src.types.session.Session
+
+Module: src.persist.load.test_session
+  AssistantMsg:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'AssistantMsg' objects&gt;
+  AssistantThought:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'AssistantThought' objects&gt;
+  CodeFragment:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'CodeFragment' objects&gt;
+  ExecutionResult:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'ExecutionResult' objects&gt;
+  HumanMsg:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'HumanMsg' objects&gt;
+  from_str:
+    Signature: (xml_str: str) -&gt; src.types.session.Session
+  test_parse:
+    Signature: ()
+
+Module: src.persist.load.event
+  AssistantAction:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'AssistantAction' objects&gt;
+  AssistantMsg:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'AssistantMsg' objects&gt;
+  AssistantThought:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'AssistantThought' objects&gt;
+  CodeFragment:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'CodeFragment' objects&gt;
+  ExecutionResult:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'ExecutionResult' objects&gt;
+  HumanMsg:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'HumanMsg' objects&gt;
+  ResumeFrom:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'ResumeFrom' objects&gt;
+  SessionEvent:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'SessionEvent' objects&gt;
+  XmlElement:
+    Type: attrib = &lt;attribute 'attrib' of 'xml.etree.ElementTree.Element' objects&gt;
+    Type: tag = &lt;attribute 'tag' of 'xml.etree.ElementTree.Element' objects&gt;
+    Type: tail = &lt;attribute 'tail' of 'xml.etree.ElementTree.Element' objects&gt;
+    Type: text = &lt;attribute 'text' of 'xml.etree.ElementTree.Element' objects&gt;
+  action_from_xml:
+    Signature: (el: xml.etree.ElementTree.Element) -&gt; src.types.session.SessionEvent
+  code_from_xml:
+    Signature: (el: xml.etree.ElementTree.Element) -&gt; src.types.session.SessionEvent
+  event_from_xml:
+    Signature: (el: xml.etree.ElementTree.Element) -&gt; src.types.session.SessionEvent
+  exec_result_from_xml:
+    Signature: (el: xml.etree.ElementTree.Element) -&gt; src.types.session.SessionEvent
+  msg_from_xml:
+    Signature: (el: xml.etree.ElementTree.Element) -&gt; src.types.session.SessionEvent
+  normalized_text:
+    Signature: (el: xml.etree.ElementTree.Element) -&gt; str
+  resume_from_event_from_xml:
+    Signature: (el: xml.etree.ElementTree.Element) -&gt; src.types.session.SessionEvent
+  thought_from_xml:
+    Signature: (el: xml.etree.ElementTree.Element) -&gt; src.types.session.SessionEvent
+
+Module: src.persist.save.session
+  AssistantAction:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'AssistantAction' objects&gt;
+  AssistantMsg:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'AssistantMsg' objects&gt;
+  AssistantThought:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'AssistantThought' objects&gt;
+  CodeFragment:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'CodeFragment' objects&gt;
+  ExecutionResult:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'ExecutionResult' objects&gt;
+  HumanMsg:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'HumanMsg' objects&gt;
+  Session:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'Session' objects&gt;
+  SessionEvent:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'SessionEvent' objects&gt;
+  event_to_xml:
+    Signature: (session_event: src.types.session.SessionEvent) -&gt; xml.etree.ElementTree.Element
+  to_file:
+    Signature: (session: src.types.session.Session, path: str, pretty_print=True)
+  to_xml_str:
+    Signature: (session: src.types.session.Session, pretty_print=True) -&gt; str
+
+Module: src.postproc..ipynb_checkpoints.__init__-checkpoint
+  AssistantAction:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'AssistantAction' objects&gt;
+  AssistantThought:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'AssistantThought' objects&gt;
+  BeautifulSoup:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'PageElement' objects&gt;
+    Type: _is_xml = &lt;property object at 0x79b707922e80&gt;
+    Type: children = &lt;property object at 0x79b707928130&gt;
+    Type: css = &lt;property object at 0x79b707929030&gt;
+    Type: decomposed = &lt;property object at 0x79b707928db0&gt;
+    Type: descendants = &lt;property object at 0x79b707928040&gt;
+    Type: isSelfClosing = &lt;property object at 0x79b7079284a0&gt;
+    Type: is_empty_element = &lt;property object at 0x79b7079284a0&gt;
+    Type: next = &lt;property object at 0x79b707922b60&gt;
+    Type: nextSibling = &lt;property object at 0x79b707922ca0&gt;
+    Type: next_elements = &lt;property object at 0x79b707922a20&gt;
+    Type: next_siblings = &lt;property object at 0x79b707928f90&gt;
+    Type: parents = &lt;property object at 0x79b707928e00&gt;
+    Type: parserClass = &lt;property object at 0x79b7079283b0&gt;
+    Type: previous = &lt;property object at 0x79b707922ac0&gt;
+    Type: previousSibling = &lt;property object at 0x79b707922c50&gt;
+    Type: previous_elements = &lt;property object at 0x79b707928f40&gt;
+    Type: previous_siblings = &lt;property object at 0x79b707928e50&gt;
+    Type: self_and_descendants = &lt;property object at 0x79b7079280e0&gt;
+    Type: string = &lt;property object at 0x79b707928310&gt;
+    Type: strings = &lt;property object at 0x79b707928450&gt;
+    Type: stripped_strings = &lt;property object at 0x79b707922d40&gt;
+    Type: text = &lt;property object at 0x79b707922de0&gt;
+  CodeFragment:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'CodeFragment' objects&gt;
+  Event:
+    Type: device = &lt;attribute 'device' of 'torch.Event' objects&gt;
+    Type: event_id = &lt;attribute 'event_id' of 'torch.Event' objects&gt;
+  extract_code_from_markdown:
+    Signature: (md_text: str) -&gt; str
+  extract_tag_content:
+    Signature: (text: str, tag: str) -&gt; tuple[str, str]
+  parse_constrained_message:
+    Signature: (text: str) -&gt; List[src.types.events.HumanMsg | src.types.events.AssistantThought | src.types.events.AssistantAction | src.types.events.CodeFragment | src.types.events.AssistantMsg | src.types.events.ExecutionResult | src.types.events.ResumeFrom]
+
+Module: src.preproc..ipynb_checkpoints.__init__-checkpoint
+  AssistantAction:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'AssistantAction' objects&gt;
+  AssistantMsg:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'AssistantMsg' objects&gt;
+  AssistantThought:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'AssistantThought' objects&gt;
+  ChatMLMsg:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'Msg' objects&gt;
+  CodeFragment:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'CodeFragment' objects&gt;
+  ExecutionResult:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'ExecutionResult' objects&gt;
+  HumanMsg:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'HumanMsg' objects&gt;
+  ResumeFrom:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'ResumeFrom' objects&gt;
+  Session:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'Session' objects&gt;
+  SessionEvent:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'SessionEvent' objects&gt;
+  _find_event_index_by_id:
+    Signature: (session_events: List[src.types.session.SessionEvent], event_id: str) -&gt; Optional[int]
+  as_action_block:
+    Signature: (action: str) -&gt; str
+  as_code_fences:
+    Signature: (code: str) -&gt; str
+  as_output_block:
+    Signature: (result: str) -&gt; str
+  as_thought_block:
+    Signature: (text: str) -&gt; str
+  ensure_consistency:
+    Signature: (conv: list[src.types.chatml.Msg])
+  event_source_role:
+    Signature: (event_body: src.types.events.HumanMsg | src.types.events.AssistantThought | src.types.events.AssistantAction | src.types.events.CodeFragment | src.types.events.AssistantMsg | src.types.events.ExecutionResult | src.types.events.ResumeFrom) -&gt; Literal['user', 'assistant']
+  event_to_plaintext:
+    Signature: (event_body: src.types.events.HumanMsg | src.types.events.AssistantThought | src.types.events.AssistantAction | src.types.events.CodeFragment | src.types.events.AssistantMsg | src.types.events.ExecutionResult | src.types.events.ResumeFrom) -&gt; str
+  parse_constrained_message:
+    Signature: (text: str) -&gt; List[src.types.events.HumanMsg | src.types.events.AssistantThought | src.types.events.AssistantAction | src.types.events.CodeFragment | src.types.events.AssistantMsg | src.types.events.ExecutionResult | src.types.events.ResumeFrom]
+  session_to_chatml:
+    Signature: (session: src.types.session.Session) -&gt; list[src.types.chatml.Msg]
+  validate_flattened_assistant_msg:
+    Signature: (msg: src.types.chatml.Msg)
+
+Module: src.types.chatml
+  Msg:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'Msg' objects&gt;
+  TypedDict:
+    Signature: (typename, fields=None, /, *, total=True, **kwargs)
+
+Module: src.types.events
+  AssistantAction:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'AssistantAction' objects&gt;
+  AssistantMsg:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'AssistantMsg' objects&gt;
+  AssistantThought:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'AssistantThought' objects&gt;
+  CodeFragment:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'CodeFragment' objects&gt;
+  ExecutionResult:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'ExecutionResult' objects&gt;
+  HumanMsg:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'HumanMsg' objects&gt;
+  ResumeFrom:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'ResumeFrom' objects&gt;
+  dataclass:
+    Signature: (cls=None, /, *, init=True, repr=True, eq=True, order=False, unsafe_hash=False, frozen=False, match_args=True, kw_only=False, slots=False, weakref_slot=False)
+
+Module: src.types.session
+  Session:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'Session' objects&gt;
+  SessionEvent:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'SessionEvent' objects&gt;
+  dataclass:
+    Signature: (cls=None, /, *, init=True, repr=True, eq=True, order=False, unsafe_hash=False, frozen=False, match_args=True, kw_only=False, slots=False, weakref_slot=False)
+
+Module: src.generate.llm
+  FastLanguageModel:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'FastLlamaModel' objects&gt;
+  LLM:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'LLM' objects&gt;
+  StructuredEnforcer:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'LogitsProcessor' objects&gt;
+  get_chat_template:
+    Signature: (tokenizer, chat_template='chatml', mapping={'role': 'role', 'content': 'content', 'user': 'user', 'assistant': 'assistant'}, map_eos_token=True, system_message=None)
+
+Module: src.generate.constrain.logit_utils
+  FloatTensor:
+    Type: H = &lt;attribute 'H' of 'torch._C.TensorBase' objects&gt;
+    Type: T = &lt;attribute 'T' of 'torch._C.TensorBase' objects&gt;
+    Type: __cuda_array_interface__ = &lt;property object at 0x79b8480a6c50&gt;
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'Tensor' objects&gt;
+    Type: _backward_hooks = &lt;attribute '_backward_hooks' of 'torch._C.TensorBase' objects&gt;
+    Type: _base = &lt;attribute '_base' of 'torch._C.TensorBase' objects&gt;
+    Type: _cdata = &lt;attribute '_cdata' of 'torch._C.TensorBase' objects&gt;
+    Type: _grad = &lt;attribute '_grad' of 'torch._C.TensorBase' objects&gt;
+    Type: _grad_fn = &lt;attribute '_grad_fn' of 'torch._C.TensorBase' objects&gt;
+    Type: _has_symbolic_sizes_strides = &lt;attribute '_has_symbolic_sizes_strides' of 'torch._C.TensorBase' objects&gt;
+    Type: _post_accumulate_grad_hooks = &lt;attribute '_post_accumulate_grad_hooks' of 'torch._C.TensorBase' objects&gt;
+    Type: _python_dispatch = &lt;attribute '_python_dispatch' of 'torch._C.TensorBase' objects&gt;
+    Type: _version = &lt;attribute '_version' of 'torch._C.TensorBase' objects&gt;
+    Type: data = &lt;attribute 'data' of 'torch._C.TensorBase' objects&gt;
+    Type: device = &lt;attribute 'device' of 'torch._C.TensorBase' objects&gt;
+    Type: grad = &lt;attribute 'grad' of 'torch._C.TensorBase' objects&gt;
+    Type: grad_fn = &lt;attribute 'grad_fn' of 'torch._C.TensorBase' objects&gt;
+    Type: imag = &lt;attribute 'imag' of 'torch._C.TensorBase' objects&gt;
+    Type: is_cpu = &lt;attribute 'is_cpu' of 'torch._C.TensorBase' objects&gt;
+    Type: is_ipu = &lt;attribute 'is_ipu' of 'torch._C.TensorBase' objects&gt;
+    Type: is_leaf = &lt;attribute 'is_leaf' of 'torch._C.TensorBase' objects&gt;
+    Type: is_maia = &lt;attribute 'is_maia' of 'torch._C.TensorBase' objects&gt;
+    Type: is_meta = &lt;attribute 'is_meta' of 'torch._C.TensorBase' objects&gt;
+    Type: is_mkldnn = &lt;attribute 'is_mkldnn' of 'torch._C.TensorBase' objects&gt;
+    Type: is_mps = &lt;attribute 'is_mps' of 'torch._C.TensorBase' objects&gt;
+    Type: is_mtia = &lt;attribute 'is_mtia' of 'torch._C.TensorBase' objects&gt;
+    Type: is_nested = &lt;attribute 'is_nested' of 'torch._C.TensorBase' objects&gt;
+    Type: is_quantized = &lt;attribute 'is_quantized' of 'torch._C.TensorBase' objects&gt;
+    Type: is_vulkan = &lt;attribute 'is_vulkan' of 'torch._C.TensorBase' objects&gt;
+    Type: is_xla = &lt;attribute 'is_xla' of 'torch._C.TensorBase' objects&gt;
+    Type: itemsize = &lt;attribute 'itemsize' of 'torch._C.TensorBase' objects&gt;
+    Type: mH = &lt;attribute 'mH' of 'torch._C.TensorBase' objects&gt;
+    Type: mT = &lt;attribute 'mT' of 'torch._C.TensorBase' objects&gt;
+    Type: name = &lt;attribute 'name' of 'torch._C.TensorBase' objects&gt;
+    Type: names = &lt;attribute 'names' of 'torch._C.TensorBase' objects&gt;
+    Type: nbytes = &lt;attribute 'nbytes' of 'torch._C.TensorBase' objects&gt;
+    Type: ndim = &lt;attribute 'ndim' of 'torch._C.TensorBase' objects&gt;
+    Type: output_nr = &lt;attribute 'output_nr' of 'torch._C.TensorBase' objects&gt;
+    Type: real = &lt;attribute 'real' of 'torch._C.TensorBase' objects&gt;
+    Type: requires_grad = &lt;attribute 'requires_grad' of 'torch._C.TensorBase' objects&gt;
+    Type: retains_grad = &lt;attribute 'retains_grad' of 'torch._C.TensorBase' objects&gt;
+    Type: shape = &lt;attribute 'shape' of 'torch._C.TensorBase' objects&gt;
+    Type: volatile = &lt;attribute 'volatile' of 'torch._C.TensorBase' objects&gt;
+  force_token:
+    Signature: (scores: torch.FloatTensor, token_id: int) -&gt; torch.FloatTensor
+
+Module: src.run.format
+  ExecutionResult:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'ExecutionResult' objects&gt;
+  LLMExecutionResult:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'LLMExecutionResult' objects&gt;
+  LLMFormatter:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'LLMFormatter' objects&gt;
+  dataclass:
+    Signature: (cls=None, /, *, init=True, repr=True, eq=True, order=False, unsafe_hash=False, frozen=False, match_args=True, kw_only=False, slots=False, weakref_slot=False)
+
+Module: src.run.execute
+  CellOutput:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'CellOutput' objects&gt;
+  ExecutionResult:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'ExecutionResult' objects&gt;
+  IPythonExecutor:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'IPythonExecutor' objects&gt;
+  capture_output:
+    Type: __weakref__ = &lt;attribute '__weakref__' of 'capture_output' objects&gt;
+  dataclass:
+    Signature: (cls=None, /, *, init=True, repr=True, eq=True, order=False, unsafe_hash=False, frozen=False, match_args=True, kw_only=False, slots=False, weakref_slot=False)
+  get_ipython:
+    Signature: ()
+</result>
+    <msg from="user" id="8bfb3298-f18f-4a59-80c5-0f824e7da6fe">Very good. Very good. Now, I want you to play around with some interesting bits of code (NOT the ones that actually load a LLM, too expensive to run - other stuff). What could be interesting to look at interactively?</msg>
+  </events>
+</session>
