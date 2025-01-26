@@ -1,4 +1,3 @@
-# File: src/run/execute.py (Revised - Final Version)
 import traceback
 from IPython import get_ipython
 from IPython.utils.capture import capture_output
@@ -50,8 +49,13 @@ class IPythonExecutor:
                         if isinstance(output, dict):
                             if 'text/plain' in output['data']:
                                 display_output += str(output['data']['text/plain']) + '\n'
-                                # Capture the first 'text/plain' output as the "result"
-                                if captured_result is None: # Only capture the first one. Is this correct? Let's assume so for now.
+                                # IMPORTANT: When using capture_output(display=True), IPython redirects
+                                # the value of naked trailing expressions (like '1+1') to `captured._outputs`
+                                # as a 'display output' of type 'text/plain', NOT to `cell_result.result`.
+                                # We capture the *first* 'text/plain' output as the effective "result"
+                                # of the cell for naked trailing expressions. This is crucial for capturing
+                                # the output of simple expressions like '1+1' or variable values without explicit print().
+                                if captured_result is None: # Capture only the first 'text/plain' output as result.
                                     captured_result = output['data']['text/plain']
 
 
@@ -59,7 +63,7 @@ class IPythonExecutor:
                     stdout=stdout,
                     stderr=stderr,
                     display_output=display_output,
-                    result=captured_result # Use captured_result from _outputs
+                    result=captured_result # Use captured_result from _outputs as cell result
                 )
 
                 if not cell_result.success:
