@@ -41,6 +41,11 @@ To **start the inference server** on a machine with a NVIDIA GPU and at least 12
 # Don't expose it publicly, use SSH tunneling.
 # This API cannot execute any code, only generate tokens.
 uv run -m src.server
+
+# You can also try a much smaller model: 0.5B, 28x smaller.
+# Quick to download and load, doesn't take much VRAM.
+# Useful for testing, though mind subtle differences, and don't expect strong capabilities.
+uv run -m src.server --model "unsloth/Qwen2.5-Coder-0.5B-Instruct-bnb-4bit" --chat-template qwen-2.5
 ```
 
 Then, on the code execution machine (can be same as inference machine, or different), **start a Jupyter server**:
