@@ -36,6 +36,12 @@ def get_base_css() -> str:
         line-height: 1.5;
     }
 
+    .event-id {
+        display: inline-block;
+        color: var(--text-muted);
+        font-size: 0.8em;
+    }
+
     .event a {
         color: var(--link-color);
         text-decoration: none;

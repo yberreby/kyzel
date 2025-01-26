@@ -78,8 +78,8 @@ if dataset_list:
     hf_dataset = Dataset.from_list(dataset_list)
 
     # Print a sample to verify
-    print("\nSample dataset entry:")
-    print(hf_dataset[0])
+    #print("\nSample dataset entry:")
+    #print(hf_dataset[0])
 
     # Save the dataset to disk
     hf_dataset.save_to_disk(OUTPUT_DATASET_PATH)

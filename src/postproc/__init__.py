@@ -20,7 +20,7 @@ def extract_tag_content(text: str, tag: str) -> tuple[str, str]:
     pattern = f"<{tag}>(.*?)</{tag}>"
     match = re.search(pattern, text, re.DOTALL)
     if not match:
-        raise ValueError(f"No {tag} tag found in text")
+        return "", text
 
     content = match.group(1).strip()
     remaining = text[:match.start()] + text[match.end():]

@@ -43,7 +43,7 @@ class LLM:
             max_new_tokens=max_new_tokens,
             logits_processor=[StructuredEnforcer(self.tokenizer)],
             pad_token_id=self.tokenizer.eos_token_id,
-            temperature=0.1,  # Low but non-zero
+            temperature=0.7,
         )
 
         # Always BS = 1.

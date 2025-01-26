@@ -2,6 +2,7 @@
 At any given point, a session can be flattened into a list of ChatML messages,
 applying any appropriate rewriting transformations.
 """
+from typing import List
 import traceback
 from typing import Optional
 from src.types.chatml import Conversation, Msg as ChatMLMsg, NormalRole
@@ -14,12 +15,14 @@ from src.types import (
     AssistantThought,
     CodeFragment,
     ExecutionResult,
+    ResumeFrom, # Import ResumeFrom
+    SessionEvent, # Import SessionEvent
 )
 from src.postproc import parse_constrained_message
 
 
-def event_source_role(event: EventBody) -> NormalRole:
-    match event:
+def event_source_role(event_body: EventBody) -> NormalRole: # Expects EventBody now
+    match event_body: # Matching on event_body
         # These are rather clear-cut.
         case HumanMsg():
             return "user"
@@ -32,7 +35,7 @@ def event_source_role(event: EventBody) -> NormalRole:
         case ExecutionResult():
             return "user"
         case _:
-            raise ValueError(f"No role mapped to type for event: {event}")
+            raise ValueError(f"No role mapped to type for event: {event_body}") # Reflect type of event_body
 
 
 def as_code_fences(code: str) -> str:
@@ -60,25 +63,25 @@ def as_output_block(result: str) -> str:
     return f"<output>{result}</output>"
 
 
-def event_to_plaintext(event: EventBody) -> str:
+def event_to_plaintext(event_body: EventBody) -> str: # Expects EventBody now
     """
     Right now, we have no rewriting, and we can have a 1-1 mapping between events and a plaintext representation that is model-friendly.
     """
-    match event:
-        case HumanMsg(text):
+    match event_body: # Matching on event_body
+        case HumanMsg(text): # Access text attribute directly
             return text
-        case AssistantMsg(text):
+        case AssistantMsg(text): # Access text attribute directly
             return text
-        case AssistantThought(text):
+        case AssistantThought(text): # Access text attribute directly
             return as_thought_block(text)
-        case AssistantAction(text):
+        case AssistantAction(text): # Access text attribute directly
             return as_action_block(text)
-        case CodeFragment(code):
+        case CodeFragment(code): # Access code attribute directly
             return as_code_fences(code)
-        case ExecutionResult(result):
-            return as_output_block(result)
+        case ExecutionResult(output): # Access output attribute directly
+            return as_output_block(output)
         case _:
-            raise ValueError(f"No plaintext mapped to type for event: {event}")
+            raise ValueError(f"No plaintext mapped to type for event: {event_body}") # Reflect type of event_body
 
 
 def ensure_consistency(conv: Conversation):
@@ -115,11 +118,28 @@ def session_to_chatml(session: Session) -> Conversation:
     Just coalescing of relevant contiguous messages.
     No system prompt.
 
-    Enforces parser-based validation of flattened assistant messages.
+    Applies history rewriting based on ResumeFrom.
+    Enforces parser-based validation of assistant messages.
     """
     conv: Conversation = []
     prev_role: Optional[NormalRole] = None
-    for event in session.events:
+    cut_off_index = None # Index to truncate conversation history if ResumeFrom is encountered
+
+    for i, session_event in enumerate(session.events): # Iterate through SessionEvents
+        event = session_event.body # Access EventBody from SessionEvent
+        if isinstance(event, ResumeFrom):
+            cut_off_index = _find_event_index_by_id(session.events, event.from_event_id)
+            if cut_off_index is not None:
+                print(f"ResumeFrom found, cutting off history after event with id: {event.from_event_id} at index {cut_off_index}")
+                # Truncate session events up to (and including) the cut-off event.
+                session.events = session.events[:cut_off_index+1] # exclusive of the index
+                break # Only handle the first ResumeFrom for now. In principle, there should only be one in a given session processing cycle.
+            else:
+                print(f"Warning: ResumeFrom refers to unknown event id: {event.from_event_id}. Ignoring.")
+                continue # Skip to next event
+
+    for session_event in session.events: # Iterate through SessionEvents again (possibly truncated)
+        event = session_event.body # Access EventBody from SessionEvent
         role = event_source_role(event)
         new_text: str = event_to_plaintext(event)
 
@@ -145,3 +165,11 @@ def session_to_chatml(session: Session) -> Conversation:
             validate_flattened_assistant_msg(msg)
 
     return conv
+
+
+def _find_event_index_by_id(session_events: List[SessionEvent], event_id: str) -> Optional[int]: # Expects List[SessionEvent]
+    """Helper function to find the index of an event by its ID."""
+    for index, session_event in enumerate(session_events): # Iterate through SessionEvents
+        if session_event.event_id == event_id: # Access event_id from SessionEvent
+            return index
+    return None # Not found

@@ -2,8 +2,9 @@
 Parsing/loading an entire session.
 """
 
+from typing import List
 import xml.etree.ElementTree as ET
-from src.types import Session
+from src.types import Session, SessionEvent # Import SessionEvent
 from .event import event_from_xml
 
 
@@ -14,7 +15,10 @@ def from_str(xml_str: str) -> Session:
     if xml_events is None:
         raise ValueError("Missing <events>")
 
-    events = [event_from_xml(e) for e in xml_events]
+    events: List[SessionEvent] = []
+    for xml_event in xml_events:
+        session_event = event_from_xml(xml_event) # Now returns SessionEvent
+        events.append(session_event)
     return Session(events=events)
 
 
