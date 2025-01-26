@@ -37,7 +37,7 @@ def get_base_css() -> str:
     }
 
     .event-id {
-        display: inline-block;
+        display: block;
         color: var(--text-muted);
         font-size: 0.8em;
     }
