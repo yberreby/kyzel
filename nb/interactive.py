@@ -107,3 +107,10 @@ while True:
         break
 
 # %%
+from src.persist.save import to_file
+
+# Save the session to the specified path
+save_path = "test_session.xml"
+to_file(session, save_path)
+
+# %%
