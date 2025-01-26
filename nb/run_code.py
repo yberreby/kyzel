@@ -45,3 +45,4 @@ print(llm_result)  # Clean, formatted output
 print(llm_result.error)  # Clean, formatted output
 
 # %%
+formatter.format_result(executor.execute("1+1"))

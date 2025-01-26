@@ -31,14 +31,21 @@ class LLMFormatter:
     def format_result(cls, result: ExecutionResult) -> LLMExecutionResult:
         """Convert raw execution result to LLM-friendly format."""
         outputs = []
+
+        # Add stdout if present
         if result.output.stdout:
             outputs.append(cls.clean_text(result.output.stdout))
+
+        # Add display output if present
+        if result.output.display_output:
+            outputs.append(cls.clean_text(result.output.display_output))
+
+        # Always add result if it exists - this ensures expression values are included
         if result.output.result is not None:
-            outputs.append(cls.clean_text(str(result.output.result)))
+            outputs.append(cls.clean_text(repr(result.output.result)))
 
         output = ''.join(outputs)
 
-        # Format error to include exception type if available
         error = None
         if not result.success:
             if result.error:

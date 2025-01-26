@@ -28,8 +28,10 @@ import sys
 sys.path.append('..')
 
 # %%
-from src.session import *
+from src.persist.load.session import from_file
 
 # %%
-path = '../data/c0.xml'
+path = '../data/sessions/c0.xml'
 display(from_file(path))
+
+# %%

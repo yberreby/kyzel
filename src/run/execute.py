@@ -1,3 +1,4 @@
+import traceback
 from IPython import get_ipython
 from IPython.utils.capture import capture_output
 from typing import Optional
@@ -9,6 +10,7 @@ class CellOutput:
     """Raw output from cell execution."""
     stdout: str
     stderr: str
+    display_output: str
     result: Optional[object] = None
 
 class ExecutionResult:
@@ -35,12 +37,20 @@ class IPythonExecutor:
         """Execute code and return raw results."""
         try:
             with capture_output(display=True) as captured:
-                result = self.ipython.run_cell(code, silent=True)
+                result = self.ipython.run_cell(code)  # Removed silent=False as it's not needed
+
+                # Get display_pub output if any
+                display_output = ''
+                if hasattr(captured, '_outputs'):
+                    for output in captured._outputs:
+                        if isinstance(output, dict) and 'text/plain' in output:
+                            display_output += str(output['text/plain']) + '\n'
 
                 output = CellOutput(
                     stdout=captured.stdout or '',
                     stderr=captured.stderr or '',
-                    result=result.result
+                    display_output=display_output,
+                    result=result.result  # This captures the last expression value
                 )
 
                 if not result.success:
@@ -50,7 +60,6 @@ class IPythonExecutor:
                     elif result.error_before_exec:
                         error = result.error_before_exec
 
-                    # Get the traceback if we have an error
                     tb = None
                     if error:
                         tb = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
@@ -72,7 +81,7 @@ class IPythonExecutor:
         except Exception as e:
             tb = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
             return ExecutionResult(
-                output=CellOutput('', '', None),
+                output=CellOutput('', '', '', None),
                 success=False,
                 error=e,
                 error_traceback=tb
