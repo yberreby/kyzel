@@ -6,7 +6,7 @@ _kyzel (/ˈkɪzəl/): mispronunciation of "chisel"._
 
 ![demo](./docs/demo.png)
 
-_Demo above: a Phi-4 QLoRA trained for 80 steps on 6 curated conversations._
+_Demo above: a Phi-4 QLoRA trained for 80 steps on 6 curated conversations; checkpoint stored with Git LFS under [`./run/phi4/lora`](./run/phi4/lora)._
 
 - Ask questions and let a local LLM write and run Python code to answer them.
   - **Inference runs on your hardware**: no Internet connectivity required unless you opt-in.
