@@ -38,8 +38,8 @@ class LLMFormatter:
             outputs.append(cls.clean_text(result.output.display_output))
 
         # Always add result if it exists - this ensures expression values are included
-        if result.output.result is not None:
-            outputs.append(cls.clean_text(repr(result.output.result)))
+        # if result.output.result is not None:
+        #     outputs.append(cls.clean_text(repr(result.output.result)))
 
         output = ''.join(outputs)
 
