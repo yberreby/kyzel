@@ -15,6 +15,7 @@ class CellOutput:
     result: Optional[object] = None
 
 
+# FIXME: this type and the logic surrounding it need a rework.
 @dataclass
 class ExecutionResult:
     """

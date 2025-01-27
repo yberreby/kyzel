@@ -19,7 +19,7 @@ from src.types import (
     SessionEvent,
     ExecutionResult,
 )
-from src.run.format import LLMFormatter
+from src.run.format import LLMExecutionResult, LLMFormatter
 from src.postproc import parse_constrained_message
 from src.prompts import DEFAULT_SYSTEM_PROMPT
 
@@ -50,8 +50,12 @@ def as_action_block(action: str) -> str:
     return f"<action>{action}</action>"
 
 
-def as_output_block(result: str) -> str:
-    return f"<output>{result}</output>"
+def as_output_block(res: LLMExecutionResult) -> str:
+    inner = res.to_plaintext()
+    return f"<output>{inner}</output>"
+
+def as_error_block(result: str) -> str:
+    return f"<error>{result}</error>"
 
 
 def event_to_plaintext(event_body: EventBody) -> str:
@@ -69,11 +73,9 @@ def event_to_plaintext(event_body: EventBody) -> str:
             return as_action_block(text)
         case CodeFragment(code):
             return as_code_fences(code)
-        case ExecutionResult():  # XXX
-            formatted_result = LLMFormatter.format_result(
-                event_body
-            )  # Pass the ExecutionResult object itself
-            return as_output_block(formatted_result.output)  # Format and extract output
+        case ExecutionResult():
+            fmt_res = LLMFormatter.format_result( event_body )
+            return as_output_block(fmt_res)
         case _:
             raise ValueError(f"No plaintext mapped to type for event: {event_body}")
 

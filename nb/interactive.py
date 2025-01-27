@@ -39,7 +39,7 @@ SERVER_URL = "http://127.0.0.1:8000/generate"
 
 # %%
 max_seq_length = 16000
-max_new_tokens = max_seq_length
+max_new_tokens = 4096
 
 # %%
 from IPython.display import clear_output

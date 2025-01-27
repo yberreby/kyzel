@@ -1,5 +1,6 @@
 """Session serialization to XML."""
 
+from src.run.format import LLMExecutionResult, LLMFormatter
 from src.types import (
     Session,
     SessionEvent,
@@ -40,8 +41,8 @@ def event_to_xml(session_event: SessionEvent) -> ET.Element:
         el.text = event.code
     elif isinstance(event, ExecutionResult):
         el = ET.Element("result", attrib=attrib)
-        # FIXME: should include everything including stderr
-        el.text = event.output.stdout
+        fmt_res = LLMFormatter.format_result(event)
+        el.text = fmt_res.to_plaintext()
     elif isinstance(event, ResumeFrom):
         el = ET.Element("resume_from", attrib=attrib)
         el.set("from_event_id", event.from_event_id)

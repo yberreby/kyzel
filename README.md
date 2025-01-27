@@ -52,8 +52,11 @@ uv run -m src.server
 # Useful for testing, though mind subtle differences, and don't expect strong capabilities.
 uv run -m src.server --model "unsloth/Qwen2.5-Coder-0.5B-Instruct-bnb-4bit" --chat-template qwen-2.5
 
-# Or, with LoRA fine-tune:
-uv run -m src.server --model "./run/qwen-2.5-coder-0.5b/lora" --chat-template qwen-2.5
+# Or, with a LoRA fine-tune of a tiny model:
+uv run -m src.server --model ./run/qwen-2.5-coder-0.5b/lora --chat-template qwen-2.5
+
+# With a Phi4 fine-tune, after creating it yourself (recommended):
+uv run -m src.server --model ./run/phi4/lora/
 ```
 
 Then, on the code execution machine (can be same as inference machine, or different), **start a Jupyter server**:
