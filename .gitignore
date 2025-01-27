@@ -28,7 +28,7 @@ llama.cpp
 nb/
 
 # run/ is for runtime data
-run/
+/run/
 
 # Log files
 *.log
