@@ -6,6 +6,8 @@ _kyzel (/ˈkɪzəl/): mispronunciation of "chisel"._
 
 ![demo](./docs/demo.png)
 
+_Demo above: a Phi-4 QLoRA trained for 80 steps on 6 curated conversations._
+
 - Ask questions and let a local LLM write and run Python code to answer them.
   - **Inference runs on your hardware**: no Internet connectivity required unless you opt-in.
   - **Code runs on your machine, with your environment**: use it to explore a new library, debug a piece of code, etc.
