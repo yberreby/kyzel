@@ -69,7 +69,7 @@ if JUST_TESTING_USE_TERRIBLE_YET_FAST_MODEL:
     core_training_args = {
         "sft": {
             "learning_rate": 1e-4,
-            "weight_decay": 0.1, # yep.
+            "weight_decay": 0.1,
             "warmup_steps": 10,
             "num_train_epochs": 20,
             "per_device_train_batch_size": 4,
@@ -89,16 +89,16 @@ else:
     chat_template = "phi-4"
     core_training_args = {
         "sft": {
-            "learning_rate": 5e-5,
-            "weight_decay": 1,
+            "learning_rate": 2e-5,
+            "weight_decay": 100,
             "warmup_steps": 5,
-            "num_train_epochs": 200,
+            "num_train_epochs": 80,
             "per_device_train_batch_size": 1,
-            "gradient_accumulation_steps": 1,
+            "gradient_accumulation_steps": 4,
         },
         "lora": {
-            "rank": 1,
-            "alpha": 2,
+            "rank": 8,
+            "alpha": 16,
         }
     }
 
@@ -164,7 +164,7 @@ plot_token_distribution(tokenizer, dataset)
 # Split if more than 1 sample
 n_samples = len(dataset)
 if n_samples > 1:
-    eval_size = min(max(1, int(0.5 * n_samples)), n_samples - 1)
+    eval_size = min(max(1, int(0.05 * n_samples)), n_samples - 1)
     splits = dataset.train_test_split(test_size=eval_size, seed=53)
     train_dataset = splits['train']
     eval_dataset = splits['test']
@@ -277,3 +277,5 @@ fig, ax, (train_line, eval_line) = plot_training_loss(trainer.state.log_history)
 # %%
 model.save_pretrained(LORA_OUTPUT_PATH)
 tokenizer.save_pretrained(LORA_OUTPUT_PATH)
+
+# %%
