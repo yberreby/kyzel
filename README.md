@@ -42,7 +42,7 @@ uv run -m pytest
 ```
 
 To **start the inference server** on a machine with a NVIDIA GPU and at least 12GB of VRAM:
-```
+```zsh
 # This will download a pretrained model on first run, then start a tiny, unauthenticated REST API on 127.0.0.1:8000.
 # Don't expose it publicly, use SSH tunneling.
 # This API cannot execute any code, only generate tokens.
