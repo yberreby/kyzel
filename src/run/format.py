@@ -1,7 +1,7 @@
 import re
 from typing import Optional
 from dataclasses import dataclass
-from .execute import ExecutionResult  # Using the unified ExecutionResult
+from .execute import ExecutionResult
 
 @dataclass
 class LLMExecutionResult:
@@ -9,6 +9,9 @@ class LLMExecutionResult:
     output: str
     success: bool
     error: Optional[str] = None
+
+    def to_plaintext(self) -> str:
+        return self.output if not self.error else f"{self.output}\n{self.error}"
 
 class LLMFormatter:
     """Formats IPython execution results for LLM consumption."""

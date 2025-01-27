@@ -65,17 +65,24 @@ def code_from_xml(el: XmlElement) -> SessionEvent:
     return SessionEvent(event_id=event_id, body=body)
 
 
+# XXX: we don't have much that we can recover from the serialized form, right now.
+# We're throwing away some information, sadly.
+# If we do it, fine, but it should be encoded in a different type.
 def exec_result_from_xml(el: XmlElement) -> SessionEvent:
     """Load execution result event from XML."""
     assert el.tag == "result"
     # For simplicity, when loading from XML, we will only store the output string in CellOutput.stdout
     output_str = el.text if el.text is not None else ""
+
     cell_output = CellOutput(
+        # Not properly distinguishing channels...
         stdout=output_str, stderr="", display_output="", result=None
-    )  # Create CellOutput
+    )
+
+    # FIXME: This is terrible, we should change this. Unconditional success - NO.
     body = ExecutionResult(
         output=cell_output, success=True
-    )  # Use unified ExecutionResult, default to success=True when loading from XML
+    )
     event_id_str = el.get("id")
     event_id = event_id_str or str(uuid.uuid4())
     return SessionEvent(event_id=event_id, body=body)
