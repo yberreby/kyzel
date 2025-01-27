@@ -102,7 +102,7 @@ Note: all notebooks are stored using [Jupytext](https://github.com/mwouts/jupyte
   - Base or fine-tuned models can be used interactively with the `nb/interactive` notebook (still rather primitive, but generally functional).
   - Satisfactory interaction sessions can be saved to XML from the notebook (see [`data/sessions`](./data/sessions)).
   - The plaintext XML format enables easy manual correction of small missteps in the text editor of your choice.
-  - Once a few sessions have been collected, they can be **flattened into token streams** and **converted to a HuggingFace [`Dataset`](https://huggingface.co/docs/datasets/en/package_reference/main_classes#datasets.Dataset)** using the `xml_to_dataset` notebook.
+  - Once a few sessions have been collected, they can be **flattened into token streams** and **converted to a HuggingFace [`Dataset`](https://huggingface.co/docs/datasets/en/package_reference/main_classes#datasets.Dataset)**.
 - **Quantized Phi-4 fine-tuning with Unsloth**
   - `nb/train` allows for low-data fine-tuning of Phi-4 on the collected data with **as little as 10-13 GB of VRAM** thanks to [Unsloth](https://unsloth.ai/).
 
