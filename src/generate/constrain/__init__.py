@@ -1,16 +1,16 @@
+import torch
 from enum import Enum, auto
 from transformers import LogitsProcessor
 from torch import Tensor, FloatTensor
 import logging
 from typing import List, Tuple, Optional
+from collections import defaultdict
 
 from .logit_utils import force_token
 
 logger = logging.getLogger(__name__)
 
-# Verbatim start of a code block. This is a constant.
 code_start = "```python\n"
-
 
 class State(Enum):
     START = auto()
@@ -21,154 +21,121 @@ class State(Enum):
     CODE_CONTENT = auto()
     DONE = auto()
 
-
 def get_code_block_status(text: str) -> Tuple[bool, bool]:
-    """
-    Cares about Markdown code blocks.
-
-    Returns (has_content, should_end)
-    """
-
-    # Should be improved so that we check that *there is a line that starts with `code_start`*
-    # Would be more robust. Fine for now...
     if not text or code_start not in text:
         return False, False
 
-    # Also brittle.
     start_loc = text.find(code_start)
-
-    # Ok, so we found a code block. Let's care about the end.
-    lines = text[start_loc:].split("\n")[1:]  # Skip start line (start fence)
+    lines = text[start_loc:].split("\n")[1:]
     for i, line in enumerate(lines):
-        # No leading whitespace allowed!
-        begins_with_triple_backticks = line.startswith("```")
-        trailing_chars = line[3:].strip()
-        if begins_with_triple_backticks and not trailing_chars:
-            # Any nonempty line?
+        if line.startswith("```") and not line[3:].strip():
             has_content = any(l.strip() for l in lines[:i])
             return has_content, True
-
     return True, False
 
-
 def get_next_state(state: State, text: str) -> Tuple[State, Optional[str]]:
-    """
-    Returns (new_state, forced_sequence)
-    """
     match state:
         case State.START:
             return State.THOUGHT_CONTENT, "<thought>"
-
         case State.THOUGHT_CONTENT if "</thought>" in text:
             return State.ACTION_OPEN, "\n<action>"
-
         case State.ACTION_OPEN:
             return State.ACTION_CONTENT, None
-
         case State.ACTION_CONTENT if "</action>" in text:
             return State.CODE_FENCE_START, "\n" + code_start
-
         case State.CODE_FENCE_START:
             return State.CODE_CONTENT, None
-
         case State.CODE_CONTENT:
             has_content, should_end = get_code_block_status(text)
             if has_content and should_end:
                 return State.DONE, "\n"
-
     return state, None
-
 
 class StructuredEnforcer(LogitsProcessor):
     def __init__(self, tokenizer):
-        assert hasattr(tokenizer, "eos_token_id") and tokenizer.eos_token_id is not None
-
         self.tokenizer = tokenizer
         self.eos_token_id = tokenizer.eos_token_id
-
-        # State of our state machine.
         self.state = State.START
-
-        # The position, as a token index, of the first token generated after this instance was created.
         self.start_pos = None
-
-        # If any, pending tokens whose generation we want to force.
-        self._tokens_to_force = []
-
-        # For debugging / the future.
-        self._token_history: List[Tuple[int, str]] = []  # [(id, text)]
-
-    def _pop_forced(self) -> Optional[int]:
-        """
-        Utility function to pop the next token to force, if any.
-        """
-        if not self._tokens_to_force:
-            return None
-        return self._tokens_to_force.pop(0)
+        self.token_to_text = defaultdict(str, {
+            token_id: tokenizer.decode([token_id], add_special_tokens=False)
+            for token_id in tokenizer.get_vocab().values()
+        })
+        self.target_sequence = ""
+        self.target_position = 0
+        self.step = 0
 
     def __call__(self, input_ids: Tensor, scores: FloatTensor) -> FloatTensor:
-        # Initialize start position if needed
-        # A given instance will be called many times, with growing `input_ids`.
-        # The very first `input_ids` give us the true starting point.
+        self.step += 1
+        logger.debug(f"\n{'='*40} STEP {self.step} {'='*40}")
+
         if self.start_pos is None:
             self.start_pos = input_ids.shape[1]
-            logger.debug(f"Generation starts at position {self.start_pos}")
+            logger.debug(f"Initialized start position: {self.start_pos}")
 
-        # By default, EOS is forbidden.
         scores[0, self.eos_token_id] = float("-inf")
 
-        # All tokens generated since the first __call__
-        # This will be empty in the first __call__!... Handle that.
-        if generated_tokens := input_ids[0, self.start_pos :].tolist():
-            # For debugging.
-            new_token = generated_tokens[-1]
-            assert new_token is not None
-            self._log_new_token(new_token)
+        generated_tokens = input_ids[0, self.start_pos:].tolist()
+        generated_text = self.tokenizer.decode(generated_tokens, add_special_tokens=False)
+        logger.debug(f"Generated text: {repr(generated_text)}")
 
-            # All text generated by the assistant so far.
-            generated_text = self.tokenizer.decode(generated_tokens)
-        else:
-            # First __call__.
-            generated_text = ""
-
-        # If we have a "forced sequence", we're completely overriding the model's behavior temporarily.
-        # This is a "whitelist" rather than a "blacklist" approach.
-        # Most of the time, we want to eliminate illegal tokens (and let the
-        # model do what its want for legal ones), but in forcing, we want to
-        # artificially insert tokens that we know should be there.
-        # We do this, as usual, through the logits.
-        #
-        # We'll hit this branch in multiple __call__s, as we force one token at a time,
-        # until the sequence is exhausted.
-        if next_forced_token := self._pop_forced():
-            return force_token(scores, next_forced_token)
-
-        # Given the current state and the text generated so far, what should we do next?
-        new_state, string_to_force = get_next_state(self.state, generated_text)
+        new_state, target_string = get_next_state(self.state, generated_text)
         if new_state != self.state:
-            logger.debug(f"State transition: {self.state} -> {new_state}")
+            logger.debug(f"STATE TRANSITION: {self.state.name} -> {new_state.name}")
             self.state = new_state
+            self.target_sequence = target_string or ""
+            self.target_position = 0
+            logger.debug(f"New target sequence: {repr(self.target_sequence)}")
 
-            if string_to_force:
-                # Can't encode nothing.
-                self._tokens_to_force = self.tokenizer.encode(
-                    string_to_force, add_special_tokens=False
-                )
+        if self.target_sequence:
+            new_text = self.tokenizer.decode(input_ids[0][self.start_pos:], add_special_tokens=False)
+            matched_length = 0
+            for i in range(min(len(new_text), len(self.target_sequence))):
+                if new_text[i] == self.target_sequence[i]:
+                    matched_length += 1
+                else:
+                    break
+            self.target_position = matched_length
 
-            # Reevaluate our logit forcing in light of the new state.
-            return self.__call__(input_ids, scores)
+            remaining_target = self.target_sequence[self.target_position:]
+            logger.debug(f"Target progress: {self.target_position}/{len(self.target_sequence)}")
+            logger.debug(f"Remaining target: {repr(remaining_target)}")
 
-        # Force EOS if done: fully deterministic.
-        # Note that if this were at the beginning of the function, we'd get an extra token...
+            valid_tokens = []
+            for token_id in self.tokenizer.get_vocab().values():
+                token_text = self.token_to_text[token_id]
+                if remaining_target.startswith(token_text):
+                    valid_tokens.append(token_id)
+                    # logger.debug(f"Valid token: {token_id} '{token_text}'")
+
+            if not valid_tokens:
+                for token_id in self.tokenizer.get_vocab().values():
+                    token_text = self.token_to_text[token_id]
+                    if token_text.startswith(remaining_target):
+                        valid_tokens.append(token_id)
+                        # logger.debug(f"Partial match token: {token_id} '{token_text}'")
+
+            if valid_tokens:
+                mask = torch.ones_like(scores, dtype=torch.bool)
+                mask[0, valid_tokens] = False
+                scores = scores.masked_fill(mask, float("-inf"))
+            else:
+                logger.warning("No valid tokens found, releasing constraints")
+                self.target_sequence = ""
+
+            logger.debug(f"Updated target position: {self.target_position}")
+
+            if self.target_sequence in new_text:
+                logger.debug(f"Completed target: {repr(self.target_sequence)}")
+                self.target_sequence = ""
+                self.target_position = 0
+
         if self.state == State.DONE:
-            return force_token(scores, self.eos_token_id)
+            logger.debug("Forcing EOS token")
+            scores = force_token(scores, self.eos_token_id)
+
+        if torch.all(scores == float("-inf")):
+            logger.error("All tokens blocked! Allowing EOS as fallback")
+            scores[0, self.eos_token_id] = 0
 
         return scores
-
-    def _log_new_token(self, new_token: int):
-        """
-        Just there for debugging.
-        """
-        token_text = self.tokenizer.decode([new_token])
-        self._token_history.append((new_token, token_text))
-        logger.debug(f"Token {len(self._token_history)}: {new_token} -> {token_text!r}")
